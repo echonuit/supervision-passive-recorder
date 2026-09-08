@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>fr.univ_amu.iut</groupId>
+  <artifactId>supervision-pr</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Supervision des Passive Recorders</name>
+
+  <modules>
+    <module>trame</module>
+    <module>simulateur</module>
+    <module>backend</module>
+  </modules>
+
+  <properties>
+    <maven.compiler.release>25</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <javalin.version>7.2.3</javalin.version>
+    <jte.version>3.2.4</jte.version>
+    <jackson.version>2.22.2</jackson.version>
+    <jdbi.version>3.54.0</jdbi.version>
+    <postgresql.version>42.7.13</postgresql.version>
+    <mongodb.version>5.11.0</mongodb.version>
+    <hivemq.version>1.4.0</hivemq.version>
+    <suncalc.version>3.11</suncalc.version>
+    <slf4j.version>2.0.19</slf4j.version>
+    <junit.version>6.1.3</junit.version>
+    <assertj.version>3.27.7</assertj.version>
+    <testcontainers.version>2.0.5</testcontainers.version>
+    <spotless.version>3.10.2</spotless.version>
+    <palantir.version>2.97.0</palantir.version>
+    <jacoco.version>0.8.15</jacoco.version>
+    <pmd.version>3.28.0</pmd.version>
+    <git.build.hook.version>3.6.0</git.build.hook.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.hivemq</groupId>
+        <artifactId>hivemq-mqtt-client</artifactId>
+        <version>${hivemq.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.16.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.6.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>3.6.3</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <!-- Formatage : le hook pre-commit l'applique, la CI le vérifie. -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <java>
+            <palantirJavaFormat>
+              <version>${palantir.version}</version>
+            </palantirJavaFormat>
+            <removeUnusedImports />
+            <trimTrailingWhitespace />
+            <endWithNewline />
+          </java>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Installe les hooks de .githooks/ au premier ./mvnw. -->
+      <plugin>
+        <groupId>com.rudikershaw.gitbuildhook</groupId>
+        <artifactId>git-build-hook-maven-plugin</artifactId>
+        <version>${git.build.hook.version}</version>
+        <configuration>
+          <gitConfig>
+            <core.hooksPath>.githooks</core.hooksPath>
+          </gitConfig>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>configure</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Analyse statique : garde-fous de conception, voir pmd-ruleset.xml. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>${pmd.version}</version>
+        <configuration>
+          <rulesets>
+            <ruleset>${maven.multiModuleProjectDirectory}/pmd-ruleset.xml</ruleset>
+          </rulesets>
+          <printFailingErrors>true</printFailingErrors>
+          <failOnViolation>true</failOnViolation>
+          <linkXRef>false</linkXRef>
+          <targetJdk>${maven.compiler.release}</targetJdk>
+          <includeTests>true</includeTests>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Couverture : rapport dans target/site/jacoco, et un plancher qui bloque. -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <!--
+                Plancher de couverture, mesuré le 2026-09-08 :
+                  backend    82,8 % de lignes / 55,6 % de branches
+                  simulateur 87,5 % de lignes / 87,5 % de branches
+                  trame      85,7 % de lignes / 60,0 % de branches
+
+                LIGNES à 80 %. La marge est mince côté backend (2,8 points) et
+                elle a une cause unique : Application.main câble tout le système
+                et démarre le serveur, il n'est pas testable unitairement. Ses
+                16 lignes pèsent 16 % du module à elles seules. Si le seuil
+                devient pénible, la bonne réponse est d'exclure Application du
+                calcul, pas de baisser le chiffre.
+
+                BRANCHES à 50 %, volontairement sous les lignes, parce que la
+                couverture des branches l'est déjà (backend 55,6 %, trame 60 %).
+                C'est un cliquet à resserrer, pas une cible atteinte.
+
+                Attention : un module sans aucun test ne produit pas de
+                jacoco.exec, et cette vérification y passe alors sans rien dire.
+                Les trois modules en ont aujourd'hui ; un quatrième qui
+                arriverait sans tests ne serait pas signalé ici.
+
+                Pour re-mesurer : ./mvnw verify puis */target/site/jacoco/jacoco.csv.
+              -->
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.80</minimum>
+                    </limit>
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.50</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

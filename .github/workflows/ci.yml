@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      # verify enchaîne : compilation, tests, Spotless, PMD et le plancher de couverture.
+      - run: ./mvnw -B verify
+
+      # Sans ça, une CI rouge sur PMD ou la couverture n'offre rien à regarder.
+      - name: Rapports qualité
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-qualite
+          path: |
+            */target/site/jacoco/
+            */target/pmd.xml
+          if-no-files-found: ignore

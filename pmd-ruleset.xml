@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="Supervision PR - garde-fous de conception"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Un petit jeu de garde-fous de conception. Chaque règle pointe un défaut connu
+        et suggère le remède : méthode trop longue -> extraire une méthode, classe trop
+        grosse -> extraire une classe, trop de paramètres -> objet-paramètre.
+
+        Les seuils sont ceux de PMD par défaut. C'est volontaire : un seuil ne se relève
+        qu'au vu d'un code précis qui le justifie, et ce dépôt de démarrage n'en contient
+        aucun. Le jour où une règle gêne, on en discute ici avec l'exemple sous les yeux,
+        on ne monte pas le chiffre en silence.
+
+        Une violation se corrige, elle ne se tait pas : ni @SuppressWarnings("PMD..."),
+        ni //NOPMD.
+
+        Usage :
+          ./mvnw verify      # PMD s'exécute et bloque en cas de violation
+          ./mvnw pmd:pmd     # rapport HTML dans target/site/pmd.html
+    </description>
+
+    <!-- Méthode ou classe trop longue -> extraire une méthode / une classe. -->
+    <rule ref="category/java/design.xml/NcssCount"/>
+
+    <!-- Trop de paramètres -> introduire un objet-paramètre. -->
+    <rule ref="category/java/design.xml/ExcessiveParameterList"/>
+
+    <!-- Trop de branches -> extraire une méthode, ou polymorphisme. -->
+    <rule ref="category/java/design.xml/CyclomaticComplexity"/>
+
+    <!-- if imbriqués -> clause garde et retour anticipé. -->
+    <rule ref="category/java/design.xml/AvoidDeeplyNestedIfStmts"/>
+
+    <!-- Classe qui fait tout -> extraire une classe. -->
+    <rule ref="category/java/design.xml/GodClass"/>
+
+    <!-- Littéral répété -> constante nommée. -->
+    <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals"/>
+
+    <!-- Réaffecter un paramètre masque l'origine d'une valeur. -->
+    <rule ref="category/java/bestpractices.xml/AvoidReassigningParameters"/>
+
+    <!-- Méthode privée jamais appelée : du code mort qui trompe le lecteur. -->
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+
+</ruleset>

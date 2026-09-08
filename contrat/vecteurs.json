@@ -1,0 +1,24 @@
+{
+  "version_contrat": 0,
+  "vecteurs": [
+    {
+      "nom": "trame minimale, version 1",
+      "hex": "01",
+      "attendu": {
+        "version": 1
+      }
+    },
+    {
+      "nom": "version maximale sur un octet",
+      "hex": "FF",
+      "attendu": {
+        "version": 255
+      }
+    },
+    {
+      "nom": "trame vide",
+      "hex": "",
+      "invalide": true
+    }
+  ]
+}

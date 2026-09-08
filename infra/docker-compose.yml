@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: supervision
+      POSTGRES_USER: supervision
+      POSTGRES_PASSWORD: supervision
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  mongo:
+    # mongo:8 refuse de demarrer sur les noyaux Linux 6.19+ (SERVER-121912) :
+    # controle sec sur uname -r, aucun contournement par variable d'environnement.
+    # La ligne 7.x n'a pas ce controle. A repasser en 8 quand le correctif sera diffuse.
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo:/data/db
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+volumes:
+  postgres:
+  mongo:

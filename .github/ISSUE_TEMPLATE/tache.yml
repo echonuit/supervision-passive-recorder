@@ -1,0 +1,23 @@
+name: Tâche
+description: Une unité de travail attribuable à une personne
+labels: []
+body:
+  - type: textarea
+    id: quoi
+    attributes:
+      label: Ce qu'il faut faire
+      description: Dans les termes du besoin, pas de la solution.
+    validations:
+      required: true
+  - type: textarea
+    id: fin
+    attributes:
+      label: Critère de fin
+      description: Comment on saura que c'est terminé. Une phrase vérifiable.
+    validations:
+      required: true
+  - type: input
+    id: palier
+    attributes:
+      label: Palier du plan de livraison
+      placeholder: ex. Palier 2

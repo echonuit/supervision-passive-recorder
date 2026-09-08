@@ -1,0 +1,10 @@
+#!/bin/bash
+# Formate les fichiers Java stagés avec Spotless (Palantir Java Format) et les re-stage.
+# Installé automatiquement par git-build-hook-maven-plugin au premier ./mvnw exécuté.
+# Ne bloque jamais un commit : le formatage est une question de forme, pas de fond.
+# Limite connue : un `git add -p` partiel est re-stagé en entier.
+STAGED_JAVA=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.java$' || true)
+if [ -n "$STAGED_JAVA" ] && ./mvnw -q spotless:apply >/dev/null 2>&1; then
+  echo "$STAGED_JAVA" | xargs git add
+fi
+exit 0
