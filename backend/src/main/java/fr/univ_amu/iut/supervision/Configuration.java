@@ -9,9 +9,11 @@ public record Configuration(
         String mongoUrl,
         String mqttHost,
         int mqttPort,
-        String mqttTopic) {
+        String mqttTopic,
+        String ingestionMode,
+        String loApiKey) {
 
-    public static Configuration depuisEnvironnement() {
+    public static Configuration fromEnvironment() {
         return new Configuration(
                 Integer.parseInt(env("PORT", "7070")),
                 env("DB_URL", "jdbc:postgresql://localhost:5432/supervision"),
@@ -20,7 +22,10 @@ public record Configuration(
                 env("MONGO_URL", "mongodb://localhost:27017"),
                 env("MQTT_HOST", "localhost"),
                 Integer.parseInt(env("MQTT_PORT", "1883")),
-                env("MQTT_TOPIC", "simulateur/#"));
+                env("MQTT_TOPIC", "simulateur/#"),
+                // "simulateur" (défaut) ou "live-objects" : voir Application.
+                env("INGESTION_MODE", "simulateur"),
+                env("LO_API_KEY", ""));
     }
 
     private static String env(String nom, String defaut) {

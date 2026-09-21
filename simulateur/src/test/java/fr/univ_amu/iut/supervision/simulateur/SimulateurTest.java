@@ -43,7 +43,7 @@ class SimulateurTest {
         try (Mqtt3BlockingClient.Mqtt3Publishes publications = abonne.publishes(MqttGlobalPublishFilter.ALL)) {
             abonne.subscribeWith().topicFilter("simulateur/#").send();
 
-            Simulateur.publier(COURTIER.getHost(), COURTIER.getMappedPort(1883), 3);
+            Simulateur.publish(COURTIER.getHost(), COURTIER.getMappedPort(1883), 3);
 
             for (int i = 0; i < 3; i++) {
                 publications.receive(10, TimeUnit.SECONDS).ifPresent(recues::add);
@@ -64,12 +64,12 @@ class SimulateurTest {
 
     @Test
     void leNombreDeBoitiersVientDuPremierArgument() {
-        assertThat(Simulateur.nbBoitiers(new String[] {"5"})).isEqualTo(5);
+        assertThat(Simulateur.nbBoxs(new String[] {"5"})).isEqualTo(5);
     }
 
     @Test
     void sansArgumentLeNombreDeBoitiersPrendSaValeurParDefaut() {
-        assertThat(Simulateur.nbBoitiers(new String[] {})).isEqualTo(24);
+        assertThat(Simulateur.nbBoxs(new String[] {})).isEqualTo(24);
     }
 
     @Test

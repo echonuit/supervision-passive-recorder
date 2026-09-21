@@ -26,7 +26,8 @@ class ArchiveTramesTest {
     static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7");
 
     private static Configuration configurationVers(String url) {
-        return new Configuration(0, "", "", "", url, "", 0, "");
+        //return new Configuration(0, "", "", "", url, "", 0, "");
+        return new Configuration(0, "", "", "", url, "", 0, "", "", "");
     }
 
     @Test
