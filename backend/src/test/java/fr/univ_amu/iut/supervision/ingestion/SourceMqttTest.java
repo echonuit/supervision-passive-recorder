@@ -28,7 +28,8 @@ class SourceMqttTest {
             .waitingFor(Wait.forListeningPort());
 
     private static Configuration configuration() {
-        return new Configuration(0, "", "", "", "", COURTIER.getHost(), COURTIER.getMappedPort(1883), "simulateur/#", "", "");
+        return new Configuration(
+                0, "", "", "", "", COURTIER.getHost(), COURTIER.getMappedPort(1883), "simulateur/#", "", "");
     }
 
     @Test

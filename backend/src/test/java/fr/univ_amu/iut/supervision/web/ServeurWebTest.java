@@ -36,8 +36,7 @@ class ServeurWebTest {
 
     @Test
     void laRouteDeSanteDitLaBaseJoignableQuandElleLest() {
-        DataBase base =
-                DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
 
         Javalin app = ServeurWeb.creer(base);
         JavalinTest.test(app, (serveur, client) -> {

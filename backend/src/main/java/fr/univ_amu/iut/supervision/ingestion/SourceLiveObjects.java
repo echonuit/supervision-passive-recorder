@@ -1,9 +1,9 @@
 package fr.univ_amu.iut.supervision.ingestion;
 
-import com.hivemq.client.mqtt.MqttClient;
-import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hivemq.client.mqtt.MqttClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
 import fr.univ_amu.iut.supervision.Configuration;
 import fr.univ_amu.iut.supervision.trame.Hex;
 import java.nio.charset.StandardCharsets;

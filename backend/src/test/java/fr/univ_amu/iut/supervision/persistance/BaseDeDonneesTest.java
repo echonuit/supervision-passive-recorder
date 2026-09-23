@@ -21,8 +21,7 @@ class DataBaseTest {
 
     @Test
     void laBaseEstJoignable() {
-        DataBase base =
-                DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
 
         assertThat(base.isJoinable()).isTrue();
     }
@@ -39,8 +38,7 @@ class DataBaseTest {
 
     @Test
     void exposeLeJdbiPourLesRequetesDuMetier() {
-        DataBase base =
-                DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
 
         Integer deux = base.jdbi()
                 .withHandle(h -> h.createQuery("select 2").mapTo(Integer.class).one());
