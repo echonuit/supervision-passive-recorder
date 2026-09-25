@@ -12,5 +12,14 @@
 <body>
   <h1>Supervision des Passive Recorders</h1>
   <p>${nbBoitiers} boîtier(s) suivi(s).</p>
+
+  <h2>Connect with token:</h2>
+  <form method="post" action="/connect-with-token">
+      <label>
+              <input type="text" name="token" required class="input-class"><br>
+      </label>
+      <br>
+      <button>Submit</button>
+  </form>
 </body>
 </html>
