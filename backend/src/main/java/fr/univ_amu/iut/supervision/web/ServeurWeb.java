@@ -19,7 +19,7 @@ public final class ServeurWeb {
     /**
      * Used to store reservation as a map
      */
-    private static final ArrayList<String> tokenList = new ArrayList<String>();
+    private static final ArrayList<String> tokenList = new ArrayList<>();
 
     public static Javalin creer(BaseDeDonnees base) {
         TemplateEngine moteur =
