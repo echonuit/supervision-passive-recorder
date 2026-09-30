@@ -14,33 +14,31 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * poste ; il s'exécute toujours en CI.
  */
 @Testcontainers(disabledWithoutDocker = true)
-class BaseDeDonneesTest {
+class DataBaseTest {
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17");
 
     @Test
     void laBaseEstJoignable() {
-        BaseDeDonnees base =
-                BaseDeDonnees.connecter(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
 
-        assertThat(base.estJoignable()).isTrue();
+        assertThat(base.isJoinable()).isTrue();
     }
 
     @Test
     void seConnecteAussiDepuisLaConfiguration() {
         Configuration config = new Configuration(
-                0, POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword(), "", "", 0, "");
+                0, POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword(), "", "", 0, "", "", "");
 
-        BaseDeDonnees base = BaseDeDonnees.connecter(config);
+        DataBase base = DataBase.connect(config);
 
-        assertThat(base.estJoignable()).isTrue();
+        assertThat(base.isJoinable()).isTrue();
     }
 
     @Test
     void exposeLeJdbiPourLesRequetesDuMetier() {
-        BaseDeDonnees base =
-                BaseDeDonnees.connecter(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
 
         Integer deux = base.jdbi()
                 .withHandle(h -> h.createQuery("select 2").mapTo(Integer.class).one());
