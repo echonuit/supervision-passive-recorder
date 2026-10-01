@@ -20,7 +20,7 @@ jobs:
       # Sans ça, une CI rouge sur PMD ou la couverture n'offre rien à regarder.
       - name: Rapports qualité
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rapports-qualite
           path: |
