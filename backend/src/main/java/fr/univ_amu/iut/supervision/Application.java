@@ -8,8 +8,6 @@ import fr.univ_amu.iut.supervision.persistance.DataBase;
 import fr.univ_amu.iut.supervision.supervision.Superviseur;
 import fr.univ_amu.iut.supervision.web.ServeurWeb;
 import io.javalin.Javalin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Point d'entrée : assemble les composants et démarre le serveur.
@@ -20,36 +18,27 @@ import org.slf4j.LoggerFactory;
  */
 public final class Application {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Application.class);
-
-    public static void main(String[] args) {
+    static void main() {
         Configuration config = Configuration.fromEnvironment();
 
         DataBase base = DataBase.connect(config);
         ArchiveTrames archive = ArchiveTrames.connecter(config);
 
         TramesSource source = createSource(config);
-        source.start(trame -> {
-            LOG.info("trame reçue de {} : {} octets", trame.idBox(), trame.octets().length);
-            archive.archiver(trame);
-            // Le décodage et la mise à jour de l'état du boîtier viendront ici.
-        });
+        source.start(archive::archiver);
 
         Superviseur superviseur = new Superviseur(base);
         superviseur.start();
 
         Javalin app = ServeurWeb.creer(base);
         app.start(config.port());
-        LOG.info("serveur démarré sur le port {}", config.port());
     }
 
     /** Choisit l'implémentation d'ingestion selon INGESTION_MODE, sans que le reste du code le sache. */
     private static TramesSource createSource(Configuration config) {
         if ("live-objects".equals(config.ingestionMode())) {
-            LOG.info("ingestion : Live Objects (production)");
             return new SourceLiveObjects(config);
         }
-        LOG.info("ingestion : simulateur ({}:{})", config.mqttHost(), config.mqttPort());
         return new SourceMqtt(config);
     }
 }

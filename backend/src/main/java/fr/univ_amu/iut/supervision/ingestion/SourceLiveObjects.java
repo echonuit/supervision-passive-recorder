@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientBuilder;
 import fr.univ_amu.iut.supervision.Configuration;
 import fr.univ_amu.iut.supervision.trame.Hex;
 import java.nio.charset.StandardCharsets;
@@ -32,11 +33,22 @@ public final class SourceLiveObjects implements TramesSource {
     private static final String TOPIC = "router/~event/v1/data/new/urn/lora/#";
 
     private final Configuration config;
+    private final String hote;
+    private final int port;
+    private final boolean tls;
     private final ObjectMapper mapper = new ObjectMapper();
     private Mqtt3AsyncClient client;
 
     public SourceLiveObjects(Configuration config) {
+        this(config, HOTE, PORT, true);
+    }
+
+    /** Visible pour les tests : permet de pointer vers un broker local sans TLS. */
+    SourceLiveObjects(Configuration config, String hote, int port, boolean tls) {
         this.config = config;
+        this.hote = hote;
+        this.port = port;
+        this.tls = tls;
     }
 
     @Override
@@ -46,13 +58,15 @@ public final class SourceLiveObjects implements TramesSource {
             return;
         }
 
-        client = MqttClient.builder()
+        Mqtt3ClientBuilder builder = MqttClient.builder()
                 .useMqttVersion3()
                 .identifier("backend-supervision-" + System.currentTimeMillis())
-                .serverHost(HOTE)
-                .serverPort(PORT)
-                .sslWithDefaultConfig()
-                .simpleAuth()
+                .serverHost(hote)
+                .serverPort(port);
+        if (tls) {
+            builder = builder.sslWithDefaultConfig();
+        }
+        client = builder.simpleAuth()
                 .username(UTILISATEUR)
                 .password(config.loApiKey().getBytes(StandardCharsets.UTF_8))
                 .applySimpleAuth()
@@ -73,9 +87,9 @@ public final class SourceLiveObjects implements TramesSource {
                         .send())
                 .whenComplete((ack, erreur) -> {
                     if (erreur != null) {
-                        LOG.error("connexion Live Objects impossible vers {}:{}", HOTE, PORT, erreur);
+                        LOG.error("connexion Live Objects impossible vers {}:{}", hote, port, erreur);
                     } else {
-                        LOG.info("abonné à {} sur {}:{}", TOPIC, HOTE, PORT);
+                        LOG.info("abonné à {} sur {}:{}", TOPIC, hote, port);
                     }
                 });
     }
