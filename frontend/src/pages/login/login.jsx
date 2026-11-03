@@ -60,9 +60,14 @@ function Login({ onLogin = () => {} }) {
         setEnCours(true);
         setErreur("");
         try {
-            const profil = await recupererProfil(tokenNettoye);
-            onLogin({ profil, token: tokenNettoye });
+            const raw_profil = await recupererProfil(tokenNettoye);
+            const profil = {};
+            profil._id = raw_profil._id;
+            profil.pseudo = raw_profil.pseudo;
+            profil.email = raw_profil.email;
             console.log(profil);
+            onLogin({ profil, token: tokenNettoye });
+
         } catch (e) {
             if (e.status === 401 || e.status === 403) {
                 setErreur("Token refusé. Vérifiez qu'il est complet, ou récupérez-en un nouveau. "+ e);
