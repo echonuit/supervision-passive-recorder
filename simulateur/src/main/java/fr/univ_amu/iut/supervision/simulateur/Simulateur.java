@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
  */
 public final class Simulateur {
 
-    private static final int BOITIERS_PAR_DEFAUT = 24;
+    private static final int DEFAULT_BOX_NB = 24;
 
     public static void main(String[] args) {
         publish(env("MQTT_HOST", "localhost"), Integer.parseInt(env("MQTT_PORT", "1883")), nbBoxs(args));
@@ -56,7 +56,7 @@ public final class Simulateur {
 
     /** Nombre de boîtiers à simuler : premier argument, ou la valeur par défaut. */
     static int nbBoxs(String[] args) {
-        return args.length > 0 ? Integer.parseInt(args[0]) : BOITIERS_PAR_DEFAUT;
+        return args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_BOX_NB;
     }
 
     static String env(String nom, String defaut) {

@@ -4,7 +4,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import fr.univ_amu.iut.supervision.Configuration;
-import fr.univ_amu.iut.supervision.ingestion.TrameRecue;
+import fr.univ_amu.iut.supervision.ingestion.TrameReceived;
 import fr.univ_amu.iut.supervision.trame.Hex;
 import java.util.Date;
 import org.bson.Document;
@@ -27,9 +27,9 @@ public final class ArchiveTrames {
         return new ArchiveTrames(client.getDatabase("supervision").getCollection("trames"));
     }
 
-    public void archiver(TrameRecue trame) {
+    public void archiver(TrameReceived trame) {
         trames.insertOne(new Document()
-                .append("boitier", trame.idBoitier())
+                .append("boitier", trame.idBox())
                 .append("recueLe", Date.from(trame.recueLe()))
                 .append("hex", Hex.depuisOctets(trame.octets())));
     }

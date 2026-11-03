@@ -1,8 +1,8 @@
 package fr.univ_amu.iut.supervision;
 
-import fr.univ_amu.iut.supervision.ingestion.SourceDeTrames;
 import fr.univ_amu.iut.supervision.ingestion.SourceLiveObjects;
 import fr.univ_amu.iut.supervision.ingestion.SourceMqtt;
+import fr.univ_amu.iut.supervision.ingestion.TramesSource;
 import fr.univ_amu.iut.supervision.persistance.ArchiveTrames;
 import fr.univ_amu.iut.supervision.persistance.DataBase;
 import fr.univ_amu.iut.supervision.supervision.Superviseur;
@@ -28,9 +28,9 @@ public final class Application {
         DataBase base = DataBase.connect(config);
         ArchiveTrames archive = ArchiveTrames.connecter(config);
 
-        SourceDeTrames source = createSource(config);
-        source.demarrer(trame -> {
-            LOG.info("trame reçue de {} : {} octets", trame.idBoitier(), trame.octets().length);
+        TramesSource source = createSource(config);
+        source.start(trame -> {
+            LOG.info("trame reçue de {} : {} octets", trame.idBox(), trame.octets().length);
             archive.archiver(trame);
             // Le décodage et la mise à jour de l'état du boîtier viendront ici.
         });
@@ -44,7 +44,7 @@ public final class Application {
     }
 
     /** Choisit l'implémentation d'ingestion selon INGESTION_MODE, sans que le reste du code le sache. */
-    private static SourceDeTrames createSource(Configuration config) {
+    private static TramesSource createSource(Configuration config) {
         if ("live-objects".equals(config.ingestionMode())) {
             LOG.info("ingestion : Live Objects (production)");
             return new SourceLiveObjects(config);

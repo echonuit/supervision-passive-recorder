@@ -19,11 +19,11 @@ import org.slf4j.LoggerFactory;
  * clé API Live Objects (utilisateur fixe {@code payload+bridge}, mot de passe = la clé),
  * et le corps du message n'est pas la trame brute mais une enveloppe JSON dans laquelle
  * la charge utile LoRa est nichée. Le nom exact des champs de cette enveloppe est à
- * confirmer sur une vraie trame (voir le TODO dans {@link #decoderEnveloppe}) ; ce qui
+ * confirmer sur une vraie trame (voir le TODO dans {@link #decodeWrapper}) ; ce qui
  * suit reproduit la structure documentée par Live Objects pour un connecteur LoRa, mais
  * n'a pas encore été vérifié contre une trame réelle de nos boîtiers.
  */
-public final class SourceLiveObjects implements SourceDeTrames {
+public final class SourceLiveObjects implements TramesSource {
 
     private static final Logger LOG = LoggerFactory.getLogger(SourceLiveObjects.class);
     private static final String HOTE = "liveobjects.orange-business.com";
@@ -40,7 +40,7 @@ public final class SourceLiveObjects implements SourceDeTrames {
     }
 
     @Override
-    public void demarrer(Consumer<TrameRecue> recepteur) {
+    public void start(Consumer<TrameReceived> recepteur) {
         if (config.loApiKey() == null || config.loApiKey().isBlank()) {
             LOG.error("LO_API_KEY absente : impossible de se connecter à Live Objects");
             return;
@@ -63,7 +63,7 @@ public final class SourceLiveObjects implements SourceDeTrames {
                         .topicFilter(TOPIC)
                         .callback(publication -> {
                             try {
-                                TrameRecue trame = decoderEnveloppe(publication.getPayloadAsBytes());
+                                TrameReceived trame = decodeWrapper(publication.getPayloadAsBytes());
                                 recepteur.accept(trame);
                             } catch (Exception e) {
                                 // Une enveloppe imprévue ne doit jamais interrompre l'abonnement.
@@ -81,7 +81,7 @@ public final class SourceLiveObjects implements SourceDeTrames {
     }
 
     /**
-     * Extrait une {@link TrameRecue} de l'enveloppe JSON publiée par Live Objects.
+     * Extrait une {@link TrameReceived} de l'enveloppe JSON publiée par Live Objects.
      *
      * <p>TODO équipe : brancher un vrai boîtier (ou consulter le Swagger Live Objects /
      * utiliser MQTT Explorer sur le topic ci-dessus) pour confirmer :
@@ -93,21 +93,21 @@ public final class SourceLiveObjects implements SourceDeTrames {
      *       Objects).</li>
      * </ul>
      */
-    private TrameRecue decoderEnveloppe(byte[] payloadBrut) throws Exception {
-        JsonNode enveloppe = mapper.readTree(payloadBrut);
+    TrameReceived decodeWrapper(byte[] payloadBrut) throws Exception {
+        JsonNode wrapper = mapper.readTree(payloadBrut);
 
-        String idBoitier = enveloppe.path("streamId").asText(null);
-        if (idBoitier == null) {
-            idBoitier = enveloppe.path("value").path("devEUI").asText("inconnu");
+        String idBox = wrapper.path("streamId").asText(null);
+        if (idBox == null) {
+            idBox = wrapper.path("value").path("devEUI").asText("inconnu");
         }
 
-        String hexCharge = enveloppe.path("value").path("payload").asText("");
+        String hexCharge = wrapper.path("value").path("payload").asText("");
 
-        return new TrameRecue(idBoitier, Instant.now(), Hex.versOctets(hexCharge));
+        return new TrameReceived(idBox, Instant.now(), Hex.versOctets(hexCharge));
     }
 
     @Override
-    public void arreter() {
+    public void stop() {
         if (client != null) {
             client.disconnect();
         }

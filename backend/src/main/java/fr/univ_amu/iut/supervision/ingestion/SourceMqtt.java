@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * en hexadécimal). L'adaptateur Live Objects s'en inspirera mais devra
  * lire le format d'enveloppe propre à la plateforme.
  */
-public final class SourceMqtt implements SourceDeTrames {
+public final class SourceMqtt implements TramesSource {
 
     private static final Logger LOG = LoggerFactory.getLogger(SourceMqtt.class);
 
@@ -29,7 +29,7 @@ public final class SourceMqtt implements SourceDeTrames {
     }
 
     @Override
-    public void demarrer(Consumer<TrameRecue> recepteur) {
+    public void start(Consumer<TrameReceived> recepteur) {
         client = MqttClient.builder()
                 .useMqttVersion3()
                 .identifier("backend-supervision")
@@ -44,7 +44,7 @@ public final class SourceMqtt implements SourceDeTrames {
                             String sujet = publication.getTopic().toString();
                             String id = sujet.substring(sujet.lastIndexOf('/') + 1);
                             String hex = new String(publication.getPayloadAsBytes(), StandardCharsets.US_ASCII);
-                            recepteur.accept(new TrameRecue(id, Instant.now(), Hex.versOctets(hex)));
+                            recepteur.accept(new TrameReceived(id, Instant.now(), Hex.versOctets(hex)));
                         })
                         .send())
                 .whenComplete((ack, erreur) -> {
@@ -57,7 +57,7 @@ public final class SourceMqtt implements SourceDeTrames {
     }
 
     @Override
-    public void arreter() {
+    public void stop() {
         if (client != null) {
             client.disconnect();
         }

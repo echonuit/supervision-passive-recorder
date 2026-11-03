@@ -16,7 +16,7 @@ import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-/** Verifie que ce qui est publie sur le courtier ressort en {@link TrameRecue}. */
+/** Verifie que ce qui est publie sur le courtier ressort en {@link TrameReceived}. */
 @Testcontainers(disabledWithoutDocker = true)
 class SourceMqttTest {
 
@@ -35,10 +35,10 @@ class SourceMqttTest {
     @Test
     void uneTrameLuePuisPublieeRessortDecodee() throws InterruptedException {
         SourceMqtt source = new SourceMqtt(configuration());
-        AtomicReference<TrameRecue> recue = new AtomicReference<>();
+        AtomicReference<TrameReceived> recue = new AtomicReference<>();
         CountDownLatch arrivee = new CountDownLatch(1);
 
-        source.demarrer(trame -> {
+        source.start(trame -> {
             recue.set(trame);
             arrivee.countDown();
         });
@@ -64,15 +64,15 @@ class SourceMqttTest {
         }
 
         assertThat(arrivee.getCount()).as("aucune trame reçue du courtier").isZero();
-        assertThat(recue.get().idBoitier()).isEqualTo("PR-42");
+        assertThat(recue.get().idBox()).isEqualTo("PR-42");
         assertThat(recue.get().octets()).containsExactly(0x0A, 0xFF);
         assertThat(recue.get().recueLe()).isNotNull();
 
-        source.arreter();
+        source.stop();
     }
 
     @Test
     void sArreterSansAvoirDemarreNeLeveRien() {
-        new SourceMqtt(configuration()).arreter();
+        new SourceMqtt(configuration()).stop();
     }
 }
