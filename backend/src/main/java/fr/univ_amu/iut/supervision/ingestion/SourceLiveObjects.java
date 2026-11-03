@@ -1,0 +1,129 @@
+package fr.univ_amu.iut.supervision.ingestion;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hivemq.client.mqtt.MqttClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientBuilder;
+import fr.univ_amu.iut.supervision.Configuration;
+import fr.univ_amu.iut.supervision.trame.Hex;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Source de trames par abonnement MQTT à Live Objects (Orange)
+ *
+ * <p>Contrairement au simulateur, la connexion se fait en TLS, authentifiée par une
+ * clé API Live Objects (utilisateur fixe {@code payload+bridge}, mot de passe = la clé),
+ * et le corps du message n'est pas la trame brute mais une enveloppe JSON dans laquelle
+ * la charge utile LoRa est nichée. Le nom exact des champs de cette enveloppe est à
+ * confirmer sur une vraie trame (voir le TODO dans {@link #decodeWrapper}) ; ce qui
+ * suit reproduit la structure documentée par Live Objects pour un connecteur LoRa, mais
+ * n'a pas encore été vérifié contre une trame réelle de nos boîtiers.
+ */
+public final class SourceLiveObjects implements TramesSource {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SourceLiveObjects.class);
+    private static final String HOTE = "liveobjects.orange-business.com";
+    private static final int PORT = 8883;
+    private static final String UTILISATEUR = "payload+bridge";
+    private static final String TOPIC = "router/~event/v1/data/new/urn/lora/#";
+
+    private final Configuration config;
+    private final String hote;
+    private final int port;
+    private final boolean tls;
+    private final ObjectMapper mapper = new ObjectMapper();
+    private Mqtt3AsyncClient client;
+
+    public SourceLiveObjects(Configuration config) {
+        this(config, HOTE, PORT, true);
+    }
+
+    /** Visible pour les tests : permet de pointer vers un broker local sans TLS. */
+    SourceLiveObjects(Configuration config, String hote, int port, boolean tls) {
+        this.config = config;
+        this.hote = hote;
+        this.port = port;
+        this.tls = tls;
+    }
+
+    @Override
+    public void start(Consumer<TrameReceived> recepteur) {
+        if (config.loApiKey() == null || config.loApiKey().isBlank()) {
+            LOG.error("LO_API_KEY absente : impossible de se connecter à Live Objects");
+            return;
+        }
+
+        Mqtt3ClientBuilder builder = MqttClient.builder()
+                .useMqttVersion3()
+                .identifier("backend-supervision-" + System.currentTimeMillis())
+                .serverHost(hote)
+                .serverPort(port);
+        if (tls) {
+            builder = builder.sslWithDefaultConfig();
+        }
+        client = builder.simpleAuth()
+                .username(UTILISATEUR)
+                .password(config.loApiKey().getBytes(StandardCharsets.UTF_8))
+                .applySimpleAuth()
+                .buildAsync();
+
+        client.connect()
+                .thenCompose(ack -> client.subscribeWith()
+                        .topicFilter(TOPIC)
+                        .callback(publication -> {
+                            try {
+                                TrameReceived trame = decodeWrapper(publication.getPayloadAsBytes());
+                                recepteur.accept(trame);
+                            } catch (Exception e) {
+                                // Une enveloppe imprévue ne doit jamais interrompre l'abonnement.
+                                LOG.warn("trame Live Objects ignorée (décodage impossible) : {}", e.getMessage());
+                            }
+                        })
+                        .send())
+                .whenComplete((ack, erreur) -> {
+                    if (erreur != null) {
+                        LOG.error("connexion Live Objects impossible vers {}:{}", hote, port, erreur);
+                    } else {
+                        LOG.info("abonné à {} sur {}:{}", TOPIC, hote, port);
+                    }
+                });
+    }
+
+    /**
+     * Extrait une {@link TrameReceived} de l'enveloppe JSON publiée par Live Objects.
+     *
+     * <p>TODO équipe : brancher un vrai boîtier (ou consulter le Swagger Live Objects /
+     * utiliser MQTT Explorer sur le topic ci-dessus) pour confirmer :
+     * <ul>
+     *   <li>le nom du champ identifiant le boîtier ({@code streamId} est une hypothèse,
+     *       peut-être {@code devEUI} selon la config du connecteur LoRaWAN) ;</li>
+     *   <li>où se trouve la charge utile brute (souvent {@code value.payload}, en
+     *       hexadécimal ou en base64 selon la configuration du décodeur côté Live
+     *       Objects).</li>
+     * </ul>
+     */
+    TrameReceived decodeWrapper(byte[] payloadBrut) throws Exception {
+        JsonNode wrapper = mapper.readTree(payloadBrut);
+
+        String idBox = wrapper.path("streamId").asText(null);
+        if (idBox == null) {
+            idBox = wrapper.path("value").path("devEUI").asText("inconnu");
+        }
+
+        String hexCharge = wrapper.path("value").path("payload").asText("");
+
+        return new TrameReceived(idBox, Instant.now(), Hex.versOctets(hexCharge));
+    }
+
+    @Override
+    public void stop() {
+        if (client != null) {
+            client.disconnect();
+        }
+    }
+}

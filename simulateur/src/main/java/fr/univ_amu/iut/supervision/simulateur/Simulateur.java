@@ -19,19 +19,19 @@ import java.nio.charset.StandardCharsets;
  * scénarisées. Rien de cela n'est écrit ici.
  *
  * <p>Comme dans le backend, {@code main} ne fait que lire l'environnement et
- * déléguer : la publication vit dans {@link #publier}, qui est testable
+ * déléguer : la publication vit dans {@link #publish}, qui est testable
  * contre un vrai courtier.
  */
 public final class Simulateur {
 
-    private static final int BOITIERS_PAR_DEFAUT = 24;
+    private static final int DEFAULT_BOX_NB = 24;
 
     public static void main(String[] args) {
-        publier(env("MQTT_HOST", "localhost"), Integer.parseInt(env("MQTT_PORT", "1883")), nbBoitiers(args));
+        publish(env("MQTT_HOST", "localhost"), Integer.parseInt(env("MQTT_PORT", "1883")), nbBoxs(args));
     }
 
     /** Publie une trame par boîtier virtuel, puis rend la main. */
-    public static void publier(String hote, int port, int nbBoitiers) {
+    public static void publish(String hote, int port, int nbBoitiers) {
         Mqtt3BlockingClient client = MqttClient.builder()
                 .useMqttVersion3()
                 .identifier("simulateur")
@@ -55,8 +55,8 @@ public final class Simulateur {
     }
 
     /** Nombre de boîtiers à simuler : premier argument, ou la valeur par défaut. */
-    static int nbBoitiers(String[] args) {
-        return args.length > 0 ? Integer.parseInt(args[0]) : BOITIERS_PAR_DEFAUT;
+    static int nbBoxs(String[] args) {
+        return args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_BOX_NB;
     }
 
     static String env(String nom, String defaut) {

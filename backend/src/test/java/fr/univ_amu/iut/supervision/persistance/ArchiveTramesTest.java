@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.mongodb.client.MongoClients;
 import fr.univ_amu.iut.supervision.Configuration;
-import fr.univ_amu.iut.supervision.ingestion.TrameRecue;
+import fr.univ_amu.iut.supervision.ingestion.TrameReceived;
 import java.time.Instant;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,8 @@ class ArchiveTramesTest {
     static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7");
 
     private static Configuration configurationVers(String url) {
-        return new Configuration(0, "", "", "", url, "", 0, "");
+        // return new Configuration(0, "", "", "", url, "", 0, "");
+        return new Configuration(0, "", "", "", url, "", 0, "", "", "");
     }
 
     @Test
@@ -34,7 +35,7 @@ class ArchiveTramesTest {
         ArchiveTrames archive = ArchiveTrames.connecter(configurationVers(MONGO.getConnectionString()));
         Instant recueLe = Instant.parse("2026-09-08T21:30:00Z");
 
-        archive.archiver(new TrameRecue("PR-07", recueLe, new byte[] {0x0A, (byte) 0xFF}));
+        archive.archiver(new TrameReceived("PR-07", recueLe, new byte[] {0x0A, (byte) 0xFF}));
 
         try (var client = MongoClients.create(MONGO.getConnectionString())) {
             Document trouve = client.getDatabase("supervision")

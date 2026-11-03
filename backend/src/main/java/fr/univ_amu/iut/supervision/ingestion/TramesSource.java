@@ -9,9 +9,9 @@ import java.util.function.Consumer;
  * réseau réel via Live Objects, l'autre sur le simulateur. Le reste du
  * système ne doit jamais savoir laquelle est en service.
  */
-public interface SourceDeTrames {
+public interface TramesSource {
 
-    void demarrer(Consumer<TrameRecue> recepteur);
+    void start(Consumer<TrameReceived> recepteur);
 
-    void arreter();
+    void stop();
 }

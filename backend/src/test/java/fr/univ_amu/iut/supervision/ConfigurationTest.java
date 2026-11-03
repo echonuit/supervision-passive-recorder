@@ -10,7 +10,7 @@ class ConfigurationTest {
     @Test
     @DisplayName("la configuration se lit sans variable d'environnement posée")
     void lectureDepuisEnvironnement() {
-        Configuration config = Configuration.depuisEnvironnement();
+        Configuration config = Configuration.fromEnvironment();
 
         // On n'affirme pas les valeurs par défaut elles-mêmes : la machine qui
         // lance les tests a le droit d'avoir PORT ou DB_URL dans son environnement.
@@ -28,7 +28,7 @@ class ConfigurationTest {
     @DisplayName("le record porte bien les valeurs qu'on lui donne")
     void leRecordPorteSesValeurs() {
         Configuration config = new Configuration(
-                8080, "jdbc:postgresql://h/b", "u", "mdp", "mongodb://h:27017", "courtier", 1883, "sujet/#");
+                8080, "jdbc:postgresql://h/b", "u", "mdp", "mongodb://h:27017", "courtier", 1883, "sujet/#", "", "");
 
         assertThat(config.port()).isEqualTo(8080);
         assertThat(config.dbUrl()).isEqualTo("jdbc:postgresql://h/b");

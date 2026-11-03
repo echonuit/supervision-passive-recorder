@@ -2,7 +2,7 @@ package fr.univ_amu.iut.supervision.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import fr.univ_amu.iut.supervision.persistance.BaseDeDonnees;
+import fr.univ_amu.iut.supervision.persistance.DataBase;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.Test;
@@ -36,8 +36,7 @@ class ServeurWebTest {
 
     @Test
     void laRouteDeSanteDitLaBaseJoignableQuandElleLest() {
-        BaseDeDonnees base =
-                BaseDeDonnees.connecter(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
 
         Javalin app = ServeurWeb.creer(base);
         JavalinTest.test(app, (serveur, client) -> {

@@ -41,7 +41,7 @@ le module ou le domaine : `trame`, `simulateur`, `ingestion`,
 - Formatage : Palantir Java Format, appliqué par le hook. Pour le lancer
   à la main : `./mvnw spotless:apply`.
 - Noms de classes et de méthodes en français, sans accents dans les
-  identifiants (`Superviseur`, `TrameRecue`, `estJoignable`).
+  identifiants (`Superviseur`, `TrameReceive`, `estJoignable`).
 - Pas de tiret cadratin dans le code, les commentaires ni la documentation :
   un tiret simple, deux-points ou une virgule.
 - Un test par comportement, nommé par ce qu'il vérifie :

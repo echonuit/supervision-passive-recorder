@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.supervision.web;
 
-import fr.univ_amu.iut.supervision.persistance.BaseDeDonnees;
+import fr.univ_amu.iut.supervision.persistance.DataBase;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
@@ -15,7 +15,7 @@ public final class ServeurWeb {
 
     private ServeurWeb() {}
 
-    public static Javalin creer(BaseDeDonnees base) {
+    public static Javalin creer(DataBase base) {
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
@@ -29,7 +29,7 @@ public final class ServeurWeb {
                             "statut",
                             "ok",
                             "base",
-                            base == null ? "absente" : (base.estJoignable() ? "joignable" : "injoignable"))));
+                            base == null ? "absente" : (base.isJoinable() ? "joignable" : "injoignable"))));
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
         });

@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.supervision.supervision;
 
-import fr.univ_amu.iut.supervision.persistance.BaseDeDonnees;
+import fr.univ_amu.iut.supervision.persistance.DataBase;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -18,22 +18,22 @@ public final class Superviseur {
 
     private static final Logger LOG = LoggerFactory.getLogger(Superviseur.class);
 
-    private final BaseDeDonnees base;
+    private final DataBase base;
     private final ScheduledExecutorService ordonnanceur = Executors.newSingleThreadScheduledExecutor();
 
-    public Superviseur(BaseDeDonnees base) {
+    public Superviseur(DataBase base) {
         this.base = base;
     }
 
-    public void demarrer() {
-        ordonnanceur.scheduleAtFixedRate(this::evaluer, 0, 1, TimeUnit.MINUTES);
+    public void start() {
+        ordonnanceur.scheduleAtFixedRate(this::evaluate, 0, 1, TimeUnit.MINUTES);
     }
 
-    void evaluer() {
-        LOG.debug("évaluation des boîtiers (base joignable : {})", base.estJoignable());
+    void evaluate() {
+        LOG.debug("évaluation des boîtiers (base joignable : {})", base.isJoinable());
     }
 
-    public void arreter() {
+    public void stop() {
         ordonnanceur.shutdownNow();
     }
 }
