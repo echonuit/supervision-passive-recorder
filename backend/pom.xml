@@ -18,7 +18,6 @@
       <artifactId>trame</artifactId>
       <version>${project.version}</version>
     </dependency>
-
     <!-- HTTP et rendu -->
     <dependency>
       <groupId>io.javalin</groupId>
