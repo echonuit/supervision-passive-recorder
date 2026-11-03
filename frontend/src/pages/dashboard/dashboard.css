@@ -1,0 +1,206 @@
+.page-tableau-de-bord {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Contenu principal */
+
+.contenu-principal {
+  flex: 1;
+  padding: 24px 32px;
+}
+
+.contenu-principal h1 {
+  margin: 0 0 20px;
+  font-size: 20px;
+}
+
+.contenu-principal h2 {
+  margin: 32px 0 12px;
+  font-size: 16px;
+}
+
+.barre-outils {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.barre-outils input[type="search"] {
+  flex: 1;
+  max-width: 320px;
+  padding: 8px 12px;
+  border: 1px solid #d0d0d5;
+  border-radius: 6px;
+}
+
+.barre-outils select {
+  padding: 8px 12px;
+  border: 1px solid #d0d0d5;
+  border-radius: 6px;
+}
+
+.date-mise-a-jour {
+  margin-left: auto;
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Tableaux */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+thead tr {
+  background-color: #e2e2e6;
+}
+
+th {
+  padding: 10px 14px;
+  font-size: 11px;
+  text-transform: uppercase;
+  text-align: left;
+  color: #555;
+}
+
+td {
+  padding: 12px 14px;
+  border-top: 1px solid #eee;
+  font-size: 14px;
+}
+
+td button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Jauge de batterie */
+
+.jauge-batterie {
+  display: inline-block;
+  width: 40px;
+  height: 14px;
+  border: 1px solid #999;
+  border-radius: 3px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.jauge-remplissage {
+  display: block;
+  height: 100%;
+}
+
+.jauge-stable {
+  background-color: #2ea043;
+}
+
+.jauge-avertissement {
+  background-color: #e0a300;
+}
+
+.jauge-critique {
+  background-color: #d6335c;
+}
+
+/* État système */
+
+.etat-stable {
+  color: #2ea043;
+  font-weight: bold;
+}
+
+.etat-avertissement {
+  color: #e0a300;
+  font-weight: bold;
+}
+
+.etat-critique {
+  color: #d6335c;
+  font-weight: bold;
+}
+
+/* Alertes */
+
+.alerte {
+  color: #e0a300;
+  font-weight: bold;
+}
+
+/* Modale d'ajout de capteur */
+
+.fond-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-ajout-capteur {
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+  padding: 24px;
+  border-radius: 12px;
+  background-color: #fff;
+}
+
+.modal-ajout-capteur h2 {
+  margin: 0 0 16px;
+  font-size: 16px;
+}
+
+.modal-ajout-capteur label {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #555;
+}
+
+.modal-ajout-capteur input,
+.modal-ajout-capteur select {
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  border: 1px solid #d0d0d5;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.boutons-modal {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.boutons-modal button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.boutons-modal button[type="button"] {
+  background-color: #eee;
+}
+
+.boutons-modal button[type="submit"] {
+  background-color: #4a5bd4;
+  color: #fff;
+  font-weight: bold;
+}
