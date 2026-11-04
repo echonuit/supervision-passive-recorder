@@ -14,11 +14,8 @@ public class LoginService {
      * @return True if token follow the characteristic, false otherwise.
      */
     public boolean checkVigieToken(String token) {
-        if (token.length() == MAX_LENGTH_VIGIETOKEN) {
-            // return true of the string contains : letter from 'a' to 'z' and 'A' to 'Z', number from 0 to 9, and continue for 32 characters.
-            return token.matches("[a-zA-Z0-9]{32}");
-        }
-        return false;
+        // return true of the string contains : letter from 'a' to 'z' and 'A' to 'Z', number from 0 to 9, and continue for 32 characters.
+        return token.matches(String.format("[a-zA-Z0-9]{%s}", MAX_LENGTH_VIGIETOKEN));
     }
 
 
