@@ -60,8 +60,8 @@ public final class ServeurWeb {
                 String myValue = ctx.sessionAttribute("my-key");
                 System.out.println(myValue);
             });
-            // TODO : implement database access and use of the API for the username, email and id of the user
 
+            // TODO : implement database access and use of the API for the username, email and id of the user
             config.routes.post("/login", ctx -> {
                 var vigieToken = ctx.formParam("vigieToken");
                 // check if vigieToken is null
