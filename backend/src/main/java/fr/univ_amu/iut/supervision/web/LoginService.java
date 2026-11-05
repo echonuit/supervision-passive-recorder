@@ -18,5 +18,11 @@ public class LoginService {
         return token.matches(String.format("[a-zA-Z0-9]{%s}", MAX_LENGTH_VIGIETOKEN));
     }
 
+    public void login(String token) {
+        if (checkVigieToken(token)) {
+
+        }
+    }
+
 
 }

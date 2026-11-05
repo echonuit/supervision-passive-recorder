@@ -11,6 +11,7 @@ import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Objects;
 
 /** Construction de l'application Javalin : routes, rendu, et rien d'autre. */
 public final class ServeurWeb {
@@ -36,6 +37,7 @@ public final class ServeurWeb {
     }
 
     public static Javalin creer(DataBase base) {
+        LoginService loginService =  new LoginService();
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
@@ -52,12 +54,28 @@ public final class ServeurWeb {
                             base == null ? "absente" : (base.isJoinable() ? "joignable" : "injoignable"))));
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
+
             config.routes.get("/write", ctx -> ctx.sessionAttribute("my-key", "My value"));
             config.routes.get("/read", ctx -> {
                 // values on the session will be available on all your instances if you use a session db
                 String myValue = ctx.sessionAttribute("my-key");
                 System.out.println(myValue);
             });
+            // TODO : implement database access and use of the API for the username, email and id of the user
+
+            config.routes.post("/login", ctx -> {
+                var vigieToken = ctx.formParam("vigieToken");
+                // check if vigieToken is null
+                if ( vigieToken != null && loginService.checkVigieToken(vigieToken) ) {
+                    ctx.sessionAttribute("userVigieToken", vigieToken);
+                    // Test if the token is well written as a session attribute
+                    System.out.println("VigieToken: " + ctx.sessionAttribute("userVigieToken"));
+                    // redirect to "/"
+                    //TODO : redirect to the dashboard (if user exist in database)
+                    ctx.redirect("/");
+                }
+            });
+
         });
         return app;
     }

@@ -12,5 +12,10 @@
 <body>
   <h1>Supervision des Passive Recorders</h1>
   <p>${nbBoitiers} boîtier(s) suivi(s).</p>
+  <form method="post" action="/login">
+      <label>Vigiechiro Token : </label>
+      <input type="text" name="vigieToken" id="vigieToken" required>
+      <input type="submit" value="Envoyer">
+  </form>
 </body>
 </html>
