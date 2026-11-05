@@ -11,7 +11,6 @@ import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Objects;
 
 /** Construction de l'application Javalin : routes, rendu, et rien d'autre. */
 public final class ServeurWeb {
