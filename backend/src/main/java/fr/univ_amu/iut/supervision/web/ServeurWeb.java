@@ -5,9 +5,10 @@ import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
 import io.javalin.Javalin;
-import io.javalin.http.staticfiles.Location;
 import io.javalin.rendering.template.JavalinJte;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,11 +22,12 @@ public final class ServeurWeb {
     private ServeurWeb() {}
 
     /**
-     * A record for processing data received from the front-end (React+Vite) in a java Object.
-     * @param name
-     * @param text
+     * A record for processing the data of the user profile.
+     * @param _id
+     * @param pseudo
+     * @param email
      */
-    record Message(String name, String text) {}
+    record Profil(String _id, String email,String pseudo) {}
 
     /**
      * Create and configure a session handler.
@@ -53,15 +55,13 @@ public final class ServeurWeb {
             // create a session handler
             config.jetty.modifyServletContextHandler(handler -> handler.setSessionHandler(createSessionHandler()) );
 
-            // API path that return a JSON map - TEST
-            config.routes.get("/api/hello", ctx -> ctx.json(Map.of("message", "Hello from Javalin!")));
             // API path that receive information from the front-end
-            config.routes.post("/api/messages", ctx -> {
-                Message msg = ctx.bodyAsClass(Message.class);
-                System.out.println(msg.name() + ": " + msg.text());
-                // Return to the front-end a message (optional)
-                ctx.json(Map.of("status", "success"));
-            });
+//            config.routes.post("/api/messages", ctx -> {
+//                Message msg = ctx.bodyAsClass(Message.class);
+//                System.out.println(msg.name() + ": " + msg.text());
+//                // Return to the front-end a message (optional)
+//                ctx.json(Map.of("status", "success"));
+//            });
 
             // Since the front-end use React+vite, this line may become useless
             config.fileRenderer(new JavalinJte(moteur));
@@ -88,6 +88,14 @@ public final class ServeurWeb {
                 }
             });
 
+            // API path that return a JSON map - TEST
+            config.routes.get("/api/hello", ctx -> ctx.json(Map.of("message", "Hello from Javalin!")));
+            // Receive the profil of the user that was obtained by using his vigiechiro token
+            config.routes.post("/api/sentProfil", ctx -> {
+                System.out.println("RAW DATA" + ctx.body());
+                Profil profil = ctx.bodyAsClass(Profil.class);
+                System.out.println(profil._id() + ": " + profil.pseudo() + ": " + profil.email());
+            });
         });
         return app;
     }

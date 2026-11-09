@@ -28,7 +28,6 @@ function App() {
   //     console.log(err)
   //   }
   // }
-  //
   // return (
   //   <form onSubmit={handleSubmit}>
   //     <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" />
@@ -39,18 +38,18 @@ function App() {
   // )
 
   // TEST for receiving information from the Javalin back-end
-  useEffect(() => {
-    fetch('/api/hello')            // relative URL: works in dev AND prod
-      .then(res => res.json())
-      .then(data => setMessage(data.message))
-      .catch(() => {
-        setMessage('Backend not reachable')
-        return <Login />;
-      })
-  }, [])
-  return <h1>{message}</h1>
+  // useEffect(() => {
+  //   fetch('/api/hello')            // relative URL: works in dev AND prod
+  //     .then(res => res.json())
+  //     .then(data => setMessage(data.message))
+  //     .catch(() => {
+  //       setMessage('Backend not reachable')
+  //       return <Login />;
+  //     })
+  // }, [])
+  // return <h1>{message}</h1>
 
-  // return <Login />;
+  return <Login />;
 }
 
 export default App;

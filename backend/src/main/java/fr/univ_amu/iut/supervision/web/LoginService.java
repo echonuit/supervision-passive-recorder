@@ -11,6 +11,7 @@ public class LoginService {
      *  - The length of the token is 32.
      * @param token The token given by the website <a href="https://vigiechiro.herokuapp.com/">https://vigiechiro.herokuapp.com/</a>.
      * @return True if token follow the characteristic, false otherwise.
+     * @deprecated Because this check is already made in the React section of the code.
      */
     public boolean checkVigieToken(String token) {
         // return true of the string contains : letter from 'a' to 'z' and 'A' to 'Z', number from 0 to 9, and continue for 32 characters.

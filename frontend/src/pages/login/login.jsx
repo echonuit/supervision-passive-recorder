@@ -38,6 +38,29 @@ async function recupererProfil(token) {
 }
 
 /**
+ * Envoie le resultat de la requete
+ * @param event
+ * @param profil
+ * @returns {Promise<void>}
+ */
+async function envoieProfilBackend(event,profil){
+  // Not sure why it is necessary, need to learn
+  event.preventDefault()
+  try {
+    const res = await fetch('/api/sentProfil', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profil),
+    })
+    // if (!res.ok) throw new Error('HTTP ' + res.status)
+    // const data = await res.json()
+  }
+  catch (err) {
+    console.log('Error: ' + err.message)
+  }
+}
+
+/**
  * @param onLogin appelé avec { profil, token } quand Vigie-Chiro a accepté le token.
  *                C'est au composant parent de ranger ces données et de changer d'écran.
  */
@@ -66,6 +89,7 @@ function Login({ onLogin = () => {} }) {
             profil.pseudo = raw_profil.pseudo;
             profil.email = raw_profil.email;
             console.log(profil);
+            await envoieProfilBackend(event, profil);
             onLogin({ profil, token: tokenNettoye });
 
         } catch (e) {
