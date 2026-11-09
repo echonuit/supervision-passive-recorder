@@ -5,6 +5,7 @@ import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
 import io.javalin.rendering.template.JavalinJte;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
@@ -18,6 +19,13 @@ public final class ServeurWeb {
     private static final int sessionIdleTimeOut = 30 * 60;
 
     private ServeurWeb() {}
+
+    /**
+     * A record for processing data received from the front-end (React+Vite) in a java Object.
+     * @param name
+     * @param text
+     */
+    record Message(String name, String text) {}
 
     /**
      * Create and configure a session handler.
@@ -42,7 +50,20 @@ public final class ServeurWeb {
 
         // Depuis Javalin 7, les routes se déclarent dans la configuration.
         var app = Javalin.create(config -> {
+            // create a session handler
             config.jetty.modifyServletContextHandler(handler -> handler.setSessionHandler(createSessionHandler()) );
+
+            // API path that return a JSON map - TEST
+            config.routes.get("/api/hello", ctx -> ctx.json(Map.of("message", "Hello from Javalin!")));
+            // API path that receive information from the front-end
+            config.routes.post("/api/messages", ctx -> {
+                Message msg = ctx.bodyAsClass(Message.class);
+                System.out.println(msg.name() + ": " + msg.text());
+                // Return to the front-end a message (optional)
+                ctx.json(Map.of("status", "success"));
+            });
+
+            // Since the front-end use React+vite, this line may become useless
             config.fileRenderer(new JavalinJte(moteur));
             config.routes.get(
                     "/sante",
@@ -54,13 +75,6 @@ public final class ServeurWeb {
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
 
-            config.routes.get("/write", ctx -> ctx.sessionAttribute("my-key", "My value"));
-            config.routes.get("/read", ctx -> {
-                // values on the session will be available on all your instances if you use a session db
-                String myValue = ctx.sessionAttribute("my-key");
-                System.out.println(myValue);
-            });
-
             // TODO : implement database access and use of the API for the username, email and id of the user
             config.routes.post("/login", ctx -> {
                 var vigieToken = ctx.formParam("vigieToken");
@@ -69,7 +83,6 @@ public final class ServeurWeb {
                     ctx.sessionAttribute("userVigieToken", vigieToken);
                     // Test if the token is well written as a session attribute
                     System.out.println("VigieToken: " + ctx.sessionAttribute("userVigieToken"));
-                    // redirect to "/"
                     //TODO : redirect to the dashboard (if user exist in database)
                     ctx.redirect("/");
                 }
