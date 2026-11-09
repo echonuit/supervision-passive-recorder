@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.supervision;
 
+import fr.univ_amu.iut.supervision.capteurs.CatalogueDemo;
 import fr.univ_amu.iut.supervision.ingestion.SourceLiveObjects;
 import fr.univ_amu.iut.supervision.ingestion.SourceMqtt;
 import fr.univ_amu.iut.supervision.ingestion.TramesSource;
@@ -30,7 +31,8 @@ public final class Application {
         Superviseur superviseur = new Superviseur(base);
         superviseur.start();
 
-        Javalin app = ServeurWeb.creer(base);
+        // CatalogueDemo : données fictives pour la carte, à remplacer par le catalogue lu en base.
+        Javalin app = ServeurWeb.creer(base, new CatalogueDemo());
         app.start(config.port());
     }
 

@@ -1,12 +1,9 @@
 import { useState } from "react";
 import Sidebar from "../../components/sidebar";
+import CarteCapteurs from "../../components/carte/carte";
+import { LIBELLES_ETAT } from "../../constantes/etats";
+import { useCapteurs } from "../../hooks/useCapteurs";
 import "./dashboard.css";
-
-const libellesEtat = {
-  stable: "Stable",
-  avertissement: "Avertissement",
-  critique: "Critique",
-};
 
 function Dashboard() {
   const [modalOuverte, setModalOuverte] = useState(false);
@@ -16,7 +13,8 @@ function Dashboard() {
   const [rechercheChoisie, setRechercheChoisie] = useState("");
   const [nouvelleRecherche, setNouvelleRecherche] = useState("");
 
-  const [capteurs] = useState([]);
+  const { capteurs, chargement, erreur } = useCapteurs();
+  const [selection, setSelection] = useState(null);
   const [texteRecherche, setTexteRecherche] = useState("");
   const [filtreEtat, setFiltreEtat] = useState("tous");
 
@@ -30,6 +28,11 @@ function Dashboard() {
     setLocalisationCapteur("");
     setRechercheChoisie("");
     setNouvelleRecherche("");
+  }
+
+  // Un nouvel objet à chaque demande : la carte se recentre même sur le capteur déjà sélectionné.
+  function selectionner(id) {
+    setSelection({ id });
   }
 
   function ajouterCapteur(evenement) {
@@ -70,6 +73,18 @@ function Dashboard() {
           </select>
         </div>
 
+        {/* Carte : elle remplit ce panneau. Pour la déplacer ou la redimensionner, voir
+            components/carte/carte.jsx et --hauteur-carte dans dashboard.css. */}
+        <section className="panneau-carte" aria-label="Carte des capteurs">
+          <CarteCapteurs
+            capteurs={capteursAffiches}
+            chargement={chargement}
+            erreur={erreur}
+            selection={selection}
+            onSelect={selectionner}
+          />
+        </section>
+
         <table>
           <thead>
             <tr>
@@ -87,7 +102,10 @@ function Dashboard() {
               </tr>
             ) : (
               capteursAffiches.map((capteur) => (
-                <tr key={capteur.id}>
+                <tr
+                  key={capteur.id}
+                  className={capteur.id === selection?.id ? "ligne-selectionnee" : ""}
+                >
                   <td>{capteur.id}</td>
                   <td>
                     <span className="jauge-batterie">
@@ -98,12 +116,15 @@ function Dashboard() {
                     </span>{" "}
                     {capteur.batterie}%
                   </td>
-                  <td className={`etat-${capteur.etat}`}>{libellesEtat[capteur.etat]}</td>
+                  <td className={`etat-${capteur.etat}`}>{LIBELLES_ETAT[capteur.etat]}</td>
                   <td className={capteur.etat === "stable" ? "" : "alerte"}>
                     {capteur.alerte}
                   </td>
                   <td>
                     <button type="button">Détails</button>
+                    <button type="button" onClick={() => selectionner(capteur.id)}>
+                      Localiser
+                    </button>
                   </td>
                 </tr>
               ))

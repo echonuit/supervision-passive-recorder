@@ -48,6 +48,16 @@
   color: #666;
 }
 
+/* Carte des capteurs : la carte remplit ce panneau, sa taille se règle ici. */
+
+.panneau-carte {
+  height: var(--hauteur-carte, 380px);
+  margin-bottom: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
 /* Tableaux */
 
 table {
@@ -84,6 +94,14 @@ td button {
   background-color: #fff;
   font-size: 12px;
   cursor: pointer;
+}
+
+tr.ligne-selectionnee td {
+  background-color: #eef1ff;
+}
+
+td button + button {
+  margin-left: 6px;
 }
 
 /* Jauge de batterie */

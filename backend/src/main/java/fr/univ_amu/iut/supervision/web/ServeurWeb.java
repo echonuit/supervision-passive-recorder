@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.supervision.web;
 
+import fr.univ_amu.iut.supervision.capteurs.CatalogueCapteurs;
 import fr.univ_amu.iut.supervision.persistance.DataBase;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
@@ -8,6 +9,7 @@ import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /** Construction de l'application Javalin : routes, rendu, et rien d'autre. */
@@ -15,7 +17,12 @@ public final class ServeurWeb {
 
     private ServeurWeb() {}
 
+    /** Serveur sans catalogue de capteurs : {@code /api/capteurs} répond une liste vide. */
     public static Javalin creer(DataBase base) {
+        return creer(base, () -> List.of());
+    }
+
+    public static Javalin creer(DataBase base, CatalogueCapteurs capteurs) {
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
@@ -32,6 +39,9 @@ public final class ServeurWeb {
                             base == null ? "absente" : (base.isJoinable() ? "joignable" : "injoignable"))));
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
+
+            // Contrat avec le front : un tableau JSON de CapteurPosition.
+            config.routes.get("/api/capteurs", ctx -> ctx.json(capteurs.lister()));
         });
     }
 
