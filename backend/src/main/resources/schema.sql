@@ -1,5 +1,5 @@
 CREATE TABLE Utilisateur(
-                            idUtilisateur INT,
+                            idUtilisateur VARCHAR(100),
                             nomUtilisateur VARCHAR(100) NOT NULL,
                             nomChercheur VARCHAR(50),
                             prenomChercheur VARCHAR(50),
@@ -42,7 +42,7 @@ CREATE TABLE Historique(
 
 CREATE TABLE est_lie_a(
                           idCapteur INT,
-                          idUtilisateur INT,
+                          idUtilisateur VARCHAR(100),
                           PRIMARY KEY(idCapteur, idUtilisateur),
                           FOREIGN KEY(idCapteur) REFERENCES Capteur(idCapteur),
                           FOREIGN KEY(idUtilisateur) REFERENCES Utilisateur(idUtilisateur)

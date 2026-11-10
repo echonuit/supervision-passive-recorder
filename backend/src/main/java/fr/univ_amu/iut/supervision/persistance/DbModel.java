@@ -31,10 +31,25 @@ public class DbModel {
 //        return result;
 //    }
 
-    public void registerUser(String username, String email, String _id) throws SQLException {
+    /**
+     *
+     * @param id
+     * @param lastName
+     * @param ScientistName
+     * @param firstName
+     * @throws SQLException
+     */
+    public void registerUser(String id,String lastName, String ScientistName, String firstName) throws SQLException {
         try (Connection conn = dbConnection.connect()) {
-            PreparedStatement stmt = conn.prepareStatement("");
-            ResultSet rs = stmt.executeQuery();
+            // TODO : report field in the Utilisateur Table that are
+            PreparedStatement stmt = conn.prepareStatement(
+                    "REPLACE INTO Utilisateur (idUtilisateur, nomUtilisateur, nomChercheur, prenomChercheur) VALUES (?,?,?,?)");
+            stmt.setString(1, id);
+            stmt.setString(2, lastName);
+            stmt.setString(3, ScientistName);
+            stmt.setString(4, firstName);
+            System.out.println(stmt);
+            stmt.executeUpdate();
         }
     }
 

@@ -65,6 +65,7 @@ public final class ServeurWeb {
                 ctx.sessionAttribute("UserId", profil._id() );
                 ctx.sessionAttribute("UserEmail", profil.email());
                 ctx.sessionAttribute("UserPseudo", profil.pseudo());
+                base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
                 System.out.println("The session now these attributes : "+ profil);
             });
             // Send to the front-end server, the attribute of the Session
@@ -85,6 +86,11 @@ public final class ServeurWeb {
             config.routes.get("/api/users", ctx -> {
                 System.out.println(base.getAllUsers());
                 ctx.json(base.getAllUsers());
+            });
+            config.routes.post("/api/login", ctx -> {
+                Profil profil = ctx.bodyAsClass(Profil.class);
+                base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
+                ctx.sessionAttribute("UserId", profil._id());
             });
         });
         return app;
