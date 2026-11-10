@@ -100,6 +100,7 @@ public final class ServeurWeb {
                 ctx.sessionAttribute("UserId", profil._id() );
                 ctx.sessionAttribute("UserEmail", profil.email());
                 ctx.sessionAttribute("UserPseudo", profil.pseudo());
+                System.out.println("The session now these attributes : "+ profil);
             });
             // Send to the front-end server, the attribute of the Session
             config.routes.get("/api/getSessionAttributes", ctx->{

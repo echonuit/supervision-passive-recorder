@@ -61,24 +61,20 @@ async function envoieProfilBackend(event,profil){
   }
 }
 
-// /**
-//  * Obtiens les attributs de la session utilisateur.
-//  * @param event
-//  * @returns {Promise<void>}
-//  */
-// async function ObtientAttributSession(event){
-//   event.preventDefault()
-//   try {
-//     return await fetch('/api/getSessionAttributes')
-//       .then(res => res.json())
-//       // .then(data => { setUserEmail(data.email) })
-//       // .then(data => { setUserPseudo(data.pseudo)} )
-//       // .then(data => { setUserId(data._id) });
-//   }
-//   catch (err){
-//     console.log('Error: ' + err.message)
-//   }
-// }
+/**
+ * Obtiens les attributs de la session utilisateur.
+ * @param event
+ * @returns {Promise<void>}
+ */
+async function ObtientAttributSession(event){
+    event.preventDefault()
+    try {
+        return await fetch('/api/getSessionAttributes')
+          .then(res => res.json())
+    } catch (err){
+        console.log('Error: ' + err.message)
+    }
+}
 
 /**
  * @param onLogin appelé avec { profil, token } quand Vigie-Chiro a accepté le token.
@@ -89,29 +85,6 @@ function Login({ onLogin = () => {} }) {
     const [enCours, setEnCours] = useState(false);
     const [erreur, setErreur] = useState("");
     const [isTutorialOpen, setIsTutorialOpen] = useState(false);
-
-    const [userId, setUserId] = useState("");
-    const [userPseudo, setUserPseudo] = useState("");
-    const [userEmail, setUserEmail] = useState("");
-    // const navigate = useNavigate();
-
-    /**
-    * Obtiens les attributs de la session utilisateur.
-    * @param event
-    * @returns {Promise<void>}
-    */
-    async function ObtientAttributSession(event){
-        event.preventDefault()
-        try {
-            return await fetch('/api/getSessionAttributes')
-                .then(res => res.json())
-                .then(data => { setUserEmail(data.email) })
-                .then(data => { setUserPseudo(data.pseudo)} )
-                .then(data => { setUserId(data._id) });
-        } catch (err){
-            console.log('Error: ' + err.message)
-        }
-    }
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -134,14 +107,6 @@ function Login({ onLogin = () => {} }) {
             console.log(profil);
             await envoieProfilBackend(event, profil);
             onLogin({ profil, token: tokenNettoye });
-            console.log(profil);
-            await ObtientAttributSession(event);
-            // Check if the user is well in the session
-            console.log("Id : " + UserId + " Email : " + userEmail + " Pseudo : " + userPseudo);
-            if (userId != null && userEmail != null && userPseudo != null) {
-                console.log("redirect dashboard");
-                return <Dashboard onLogin={onLogin} />
-            }
         } catch (e) {
             if (e.status === 401 || e.status === 403) {
                 setErreur("Token refusé. Vérifiez qu'il est complet, ou récupérez-en un nouveau. "+ e);
