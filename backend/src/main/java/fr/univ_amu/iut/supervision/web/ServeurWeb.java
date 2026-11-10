@@ -102,6 +102,12 @@ public final class ServeurWeb {
             });
             //TODO : Implement a system for redirecting the user to the login page when the session timeout.
 
+            // TODO : Test if this work
+            config.routes.get("/api/disconnect", ctx -> {
+                // should destroy the session of the user
+                ctx.req().getSession().invalidate();
+            });
+
         });
         return app;
     }
