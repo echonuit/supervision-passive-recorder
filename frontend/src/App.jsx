@@ -1,5 +1,4 @@
 import Login from "./pages/login/login.jsx";
-import Dashboard from "./pages/dashboard/dashboard.jsx";
 // TEST FOR LINKING THE FRONTEND TO THE JAVALIN BACKEND
 import { useEffect, useState } from 'react'
 

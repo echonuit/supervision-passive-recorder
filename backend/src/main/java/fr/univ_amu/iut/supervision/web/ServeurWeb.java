@@ -6,6 +6,7 @@ import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
+import kotlin.reflect.KFunction;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -17,7 +18,7 @@ import java.util.Map;
 /** Construction de l'application Javalin : routes, rendu, et rien d'autre. */
 public final class ServeurWeb {
     /** Idle timeout (in second) of a session. For no timeout use the value -1.*/
-    private static final int sessionIdleTimeOut = 30 * 60;
+    private static final int sessionIdleTimeOut = 60 * 60;
 
     private ServeurWeb() {}
 
@@ -28,6 +29,10 @@ public final class ServeurWeb {
      * @param email
      */
     record Profil(String _id, String email,String pseudo) {}
+
+    private String UserId;
+    private String UserEmail;
+    private String UserPseudo;
 
     /**
      * Create and configure a session handler.
@@ -62,6 +67,8 @@ public final class ServeurWeb {
 //                // Return to the front-end a message (optional)
 //                ctx.json(Map.of("status", "success"));
 //            });
+            // API path that return a JSON map - TEST
+//            config.routes.get("/api/hello", ctx -> ctx.json(Map.of("message", "Hello from Javalin!")));
 
             // Since the front-end use React+vite, this line may become useless
             config.fileRenderer(new JavalinJte(moteur));
@@ -75,27 +82,35 @@ public final class ServeurWeb {
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
 
-            // TODO : implement database access and use of the API for the username, email and id of the user
-            config.routes.post("/login", ctx -> {
-                var vigieToken = ctx.formParam("vigieToken");
-                // check if vigieToken is null
-                if ( vigieToken != null && loginService.checkVigieToken(vigieToken) ) {
-                    ctx.sessionAttribute("userVigieToken", vigieToken);
-                    // Test if the token is well written as a session attribute
-                    System.out.println("VigieToken: " + ctx.sessionAttribute("userVigieToken"));
-                    //TODO : redirect to the dashboard (if user exist in database)
-                    ctx.redirect("/");
+            // Deprecated route TODO : remove
+//            config.routes.post("/login", ctx -> {
+//                var vigieToken = ctx.formParam("vigieToken");
+//                // check if vigieToken is null
+//                if ( vigieToken != null && loginService.checkVigieToken(vigieToken) ) {
+//                    ctx.sessionAttribute("userVigieToken", vigieToken);
+//                    // Test if the token is well written as a session attribute
+//                    System.out.println("VigieToken: " + ctx.sessionAttribute("userVigieToken"));
+//                }
+//            });
+
+            // Receive the profil of the user that was obtained by using his vigiechiro token
+            config.routes.post("/api/sentProfil", ctx -> {
+                Profil profil = ctx.bodyAsClass(Profil.class);
+                // Write the attribute of the user in the session
+                ctx.sessionAttribute("UserId", profil._id() );
+                ctx.sessionAttribute("UserEmail", profil.email());
+                ctx.sessionAttribute("UserPseudo", profil.pseudo());
+            });
+            // Send to the front-end server, the attribute of the Session
+            config.routes.get("/api/getSessionAttributes", ctx->{
+                String id = ctx.sessionAttribute("UserId");
+                String email= ctx.sessionAttribute("UserEmail");
+                String pseudo = ctx.sessionAttribute("UserPseudo");
+                if (id != null && email != null && pseudo != null) {
+                    ctx.json(Map.of("_id", id, "email", email, "pseudo", pseudo));
                 }
             });
 
-            // API path that return a JSON map - TEST
-            config.routes.get("/api/hello", ctx -> ctx.json(Map.of("message", "Hello from Javalin!")));
-            // Receive the profil of the user that was obtained by using his vigiechiro token
-            config.routes.post("/api/sentProfil", ctx -> {
-                System.out.println("RAW DATA" + ctx.body());
-                Profil profil = ctx.bodyAsClass(Profil.class);
-                System.out.println(profil._id() + ": " + profil.pseudo() + ": " + profil.email());
-            });
         });
         return app;
     }
@@ -104,5 +119,27 @@ public final class ServeurWeb {
     private static Path dossierDesGabarits() {
         Path local = Path.of("src", "main", "jte");
         return Files.isDirectory(local) ? local : Path.of("backend", "src", "main", "jte");
+    }
+
+// GETTER AND SETTER
+
+    public String getUserId() {
+        return UserId;
+    }
+    public String getUserEmail() {
+        return UserEmail;
+    }
+    public String getUserPseudo() {
+        return UserPseudo;
+    }
+
+    public void setUserId(String userId) {
+        UserId = userId;
+    }
+    public void setUserEmail(String userEmail) {
+        UserEmail = userEmail;
+    }
+    public void setUserPseudo(String userPseudo) {
+        UserPseudo = userPseudo;
     }
 }

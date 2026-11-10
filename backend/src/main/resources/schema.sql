@@ -1,5 +1,0 @@
--- Schéma de la base relationnelle.
---
--- À concevoir par l'équipe à partir du glossaire et du modèle conceptuel :
--- campagne, site, boîtier, déploiement, session attendue, session constatée.
--- Aucune table n'est fournie volontairement.
