@@ -18,7 +18,7 @@ import java.util.Map;
 /** Construction de l'application Javalin : routes, rendu, et rien d'autre. */
 public final class ServeurWeb {
     /** Idle timeout (in second) of a session. For no timeout use the value -1.*/
-    private static final int sessionIdleTimeOut = 60 * 60;
+    private static final int sessionIdleTimeOut = -1;
 
     private ServeurWeb() {}
 
@@ -82,17 +82,6 @@ public final class ServeurWeb {
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
 
-            // Deprecated route TODO : remove
-//            config.routes.post("/login", ctx -> {
-//                var vigieToken = ctx.formParam("vigieToken");
-//                // check if vigieToken is null
-//                if ( vigieToken != null && loginService.checkVigieToken(vigieToken) ) {
-//                    ctx.sessionAttribute("userVigieToken", vigieToken);
-//                    // Test if the token is well written as a session attribute
-//                    System.out.println("VigieToken: " + ctx.sessionAttribute("userVigieToken"));
-//                }
-//            });
-
             // Receive the profil of the user that was obtained by using his vigiechiro token
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
@@ -111,6 +100,7 @@ public final class ServeurWeb {
                     ctx.json(Map.of("_id", id, "email", email, "pseudo", pseudo));
                 }
             });
+            //TODO : Implement a system for redirecting the user to the login page when the session timeout.
 
         });
         return app;
