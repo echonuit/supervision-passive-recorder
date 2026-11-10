@@ -59,12 +59,19 @@ public final class ServeurWeb {
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
             // Receive the profil of the user that was obtained by using his vigiechiro token
+
+            // Get all the users id and last name in a JSON
+            config.routes.get("/api/users", ctx -> {
+                System.out.println(base.getAllUsers());
+                ctx.json(base.getAllUsers());
+            });
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
                 // Write the attribute of the user in the session
                 ctx.sessionAttribute("UserId", profil._id() );
                 ctx.sessionAttribute("UserEmail", profil.email());
                 ctx.sessionAttribute("UserPseudo", profil.pseudo());
+                // TODO add a sys to prevent having to write the user again in the database.
                 base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
                 System.out.println("The session now these attributes : "+ profil);
             });
@@ -82,15 +89,12 @@ public final class ServeurWeb {
                 // should destroy the session of the user
                 ctx.req().getSession().invalidate();
             });
-            // Get all the users id and last name in a JSON
-            config.routes.get("/api/users", ctx -> {
-                System.out.println(base.getAllUsers());
-                ctx.json(base.getAllUsers());
-            });
-            config.routes.post("/api/login", ctx -> {
-                Profil profil = ctx.bodyAsClass(Profil.class);
-                base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
-                ctx.sessionAttribute("UserId", profil._id());
+            // Delete the user of the session from the database
+            // TODO need testing
+            config.routes.get("/api/delete-users/:id", ctx -> {
+                if (ctx.sessionAttribute("UserId") != null) {
+                    base.deleteUser(ctx.sessionAttribute("UserId"));
+                }
             });
         });
         return app;

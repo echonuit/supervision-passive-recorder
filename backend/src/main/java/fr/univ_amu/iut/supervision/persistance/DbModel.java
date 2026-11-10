@@ -32,11 +32,11 @@ public class DbModel {
 //    }
 
     /**
-     *
-     * @param id
-     * @param lastName
-     * @param ScientistName
-     * @param firstName
+     * Register the user in the database.
+     * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters.
+     * @param lastName His last name, alphanumerical string of maximum 100 characters.
+     * @param ScientistName His scientist name, alphanumerical string of maximum 50 characters.
+     * @param firstName His first name, alphanumerical string of maximum 50 characters.
      * @throws SQLException
      */
     public void registerUser(String id,String lastName, String ScientistName, String firstName) throws SQLException {
@@ -48,6 +48,21 @@ public class DbModel {
             stmt.setString(2, lastName);
             stmt.setString(3, ScientistName);
             stmt.setString(4, firstName);
+            System.out.println(stmt);
+            stmt.executeUpdate();
+        }
+    }
+
+    /**
+     * Delete a user from the database.
+     * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters
+     * @throws SQLException
+     */
+    public void deleteUser(String id) throws SQLException {
+        // TODO : test it
+        try (Connection conn = dbConnection.connect()) {
+            PreparedStatement stmt = conn.prepareStatement("DELETE FROM Utilisateur WHERE idUtilisateur = ?");
+            stmt.setString(1, id);
             System.out.println(stmt);
             stmt.executeUpdate();
         }
