@@ -7,6 +7,8 @@ import fr.univ_amu.iut.supervision.persistance.ArchiveTrames;
 import fr.univ_amu.iut.supervision.persistance.DataBase;
 import fr.univ_amu.iut.supervision.supervision.Superviseur;
 import fr.univ_amu.iut.supervision.web.ServeurWeb;
+import fr.univ_amu.iut.supervision.web.sensor.DbModel;
+import fr.univ_amu.iut.supervision.web.sensor.SensorService;
 import io.javalin.Javalin;
 
 /**
@@ -30,7 +32,9 @@ public final class Application {
         Superviseur superviseur = new Superviseur(base);
         superviseur.start();
 
-        Javalin app = ServeurWeb.creer(base);
+        SensorService sensorService = new SensorService(new DbModel());
+
+        Javalin app = ServeurWeb.creer(base, sensorService);
         app.start(config.port());
     }
 
