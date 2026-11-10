@@ -1,6 +1,6 @@
 package fr.univ_amu.iut.supervision.web;
 
-import fr.univ_amu.iut.supervision.persistance.DataBase;
+import fr.univ_amu.iut.supervision.persistance.DbModel;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
@@ -8,8 +8,6 @@ import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
 import kotlin.reflect.KFunction;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,10 +28,6 @@ public final class ServeurWeb {
      */
     record Profil(String _id, String email,String pseudo) {}
 
-    private String UserId;
-    private String UserEmail;
-    private String UserPseudo;
-
     /**
      * Create and configure a session handler.
      * @return An object of class SessionHandler
@@ -50,7 +44,7 @@ public final class ServeurWeb {
         return sessionHandler;
     }
 
-    public static Javalin creer(DataBase base) {
+    public static Javalin creer(DbModel base) {
         LoginService loginService =  new LoginService();
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
@@ -60,28 +54,10 @@ public final class ServeurWeb {
             // create a session handler
             config.jetty.modifyServletContextHandler(handler -> handler.setSessionHandler(createSessionHandler()) );
 
-            // API path that receive information from the front-end
-//            config.routes.post("/api/messages", ctx -> {
-//                Message msg = ctx.bodyAsClass(Message.class);
-//                System.out.println(msg.name() + ": " + msg.text());
-//                // Return to the front-end a message (optional)
-//                ctx.json(Map.of("status", "success"));
-//            });
-            // API path that return a JSON map - TEST
-//            config.routes.get("/api/hello", ctx -> ctx.json(Map.of("message", "Hello from Javalin!")));
-
             // Since the front-end use React+vite, this line may become useless
             config.fileRenderer(new JavalinJte(moteur));
-            config.routes.get(
-                    "/sante",
-                    ctx -> ctx.json(Map.of(
-                            "statut",
-                            "ok",
-                            "base",
-                            base == null ? "absente" : (base.isJoinable() ? "joignable" : "injoignable"))));
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
-
             // Receive the profil of the user that was obtained by using his vigiechiro token
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
@@ -100,14 +76,16 @@ public final class ServeurWeb {
                     ctx.json(Map.of("_id", id, "email", email, "pseudo", pseudo));
                 }
             });
-            //TODO : Implement a system for redirecting the user to the login page when the session timeout.
-
-            // TODO : Test if this work
+            // TODO : implement in the fron-end
             config.routes.get("/api/disconnect", ctx -> {
                 // should destroy the session of the user
                 ctx.req().getSession().invalidate();
             });
-
+            // Get all the users id and last name in a JSON
+            config.routes.get("/api/users", ctx -> {
+                System.out.println(base.getAllUsers());
+                ctx.json(base.getAllUsers());
+            });
         });
         return app;
     }
@@ -116,27 +94,5 @@ public final class ServeurWeb {
     private static Path dossierDesGabarits() {
         Path local = Path.of("src", "main", "jte");
         return Files.isDirectory(local) ? local : Path.of("backend", "src", "main", "jte");
-    }
-
-// GETTER AND SETTER
-
-    public String getUserId() {
-        return UserId;
-    }
-    public String getUserEmail() {
-        return UserEmail;
-    }
-    public String getUserPseudo() {
-        return UserPseudo;
-    }
-
-    public void setUserId(String userId) {
-        UserId = userId;
-    }
-    public void setUserEmail(String userEmail) {
-        UserEmail = userEmail;
-    }
-    public void setUserPseudo(String userPseudo) {
-        UserPseudo = userPseudo;
     }
 }

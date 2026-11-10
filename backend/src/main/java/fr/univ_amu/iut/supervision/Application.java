@@ -5,6 +5,7 @@ import fr.univ_amu.iut.supervision.ingestion.SourceMqtt;
 import fr.univ_amu.iut.supervision.ingestion.TramesSource;
 import fr.univ_amu.iut.supervision.persistance.ArchiveTrames;
 import fr.univ_amu.iut.supervision.persistance.DataBase;
+import fr.univ_amu.iut.supervision.persistance.DbModel;
 import fr.univ_amu.iut.supervision.supervision.Superviseur;
 import fr.univ_amu.iut.supervision.web.ServeurWeb;
 import io.javalin.Javalin;
@@ -22,15 +23,17 @@ public final class Application {
         Configuration config = Configuration.fromEnvironment();
 
         DataBase base = DataBase.connect(config);
+        DbModel base2 = new DbModel();
         ArchiveTrames archive = ArchiveTrames.connecter(config);
 
         TramesSource source = createSource(config);
         source.start(archive::archiver);
 
+        // TODO change
         Superviseur superviseur = new Superviseur(base);
         superviseur.start();
 
-        Javalin app = ServeurWeb.creer(base);
+        Javalin app = ServeurWeb.creer(base2);
         app.start(config.port());
     }
 
