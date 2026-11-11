@@ -1,6 +1,9 @@
+package fr.univ_amu.iut.supervision.web.sensor;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fr.univ_amu.iut.supervision.persistance.DbModel;
 import java.sql.SQLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +12,10 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class SensorServiceTest {
-    
+
+    private static final String EUI = "AMVIUS";
+    private static final String NAME = "capteur";
+
     private static class FakeDbModel extends DbModel {
         NewSensor lastSensor;
         String lastGroupName;
@@ -47,34 +53,34 @@ class SensorServiceTest {
 
     @Test
     void addSensor_withValidData_returnsGeneratedIdAndCallsDatabase() throws SQLException {
-        NewSensor sensor = sensor("AMVIUS", "batman_exterminator");
+        NewSensor s = sensor(EUI, "batman_exterminator");
 
-        int id = service.addSensor(sensor);
+        int id = service.addSensor(s);
 
         assertThat(id).isEqualTo(42);
-        assertThat(fakeDb.lastSensor).isEqualTo(sensor);
+        assertThat(fakeDb.lastSensor).isEqualTo(s);
     }
 
     @Test
     void addSensor_withoutGroupAndCoordinates_isAccepted() throws SQLException {
-        NewSensor sensor = new NewSensor("AMVIUS", "capteur", null, null, null);
+        NewSensor s = new NewSensor(EUI, NAME, null, null, null);
 
-        int id = service.addSensor(sensor);
+        int id = service.addSensor(s);
 
         assertThat(id).isEqualTo(42);
-        assertThat(fakeDb.lastSensor).isEqualTo(sensor);
+        assertThat(fakeDb.lastSensor).isEqualTo(s);
     }
 
     @Test
     void addSensor_withDevEuiOfExactlyMaxLength_isAccepted() throws SQLException {
-        service.addSensor(sensor("A".repeat(16), "capteur"));
+        service.addSensor(sensor("A".repeat(16), NAME));
 
         assertThat(fakeDb.lastSensor).isNotNull();
     }
 
     @Test
     void addSensor_withNameOfExactlyMaxLength_isAccepted() throws SQLException {
-        service.addSensor(sensor("AMVIUS", "n".repeat(100)));
+        service.addSensor(sensor(EUI, "n".repeat(100)));
 
         assertThat(fakeDb.lastSensor).isNotNull();
     }
@@ -83,18 +89,18 @@ class SensorServiceTest {
     @NullAndEmptySource
     @ValueSource(strings = {" ", "   "})
     void addSensor_withMissingDevEui_throwsAndDoesNotCallDatabase(String devEUI) {
-        assertThatThrownBy(() -> service.addSensor(sensor(devEUI, "capteur")))
+        assertThatThrownBy(() -> service.addSensor(sensor(devEUI, NAME)))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("devEUI is required");
+                .hasMessage("devEUI est requis");
 
         assertThat(fakeDb.lastSensor).isNull();
     }
 
     @Test
     void addSensor_withTooLongDevEui_throwsAndDoesNotCallDatabase() {
-        assertThatThrownBy(() -> service.addSensor(sensor("A".repeat(17), "capteur")))
+        assertThatThrownBy(() -> service.addSensor(sensor("A".repeat(17), NAME)))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("devEUI must be at most 16 characters");
+                .hasMessage("devEUI doit contenir au maximum 16 caractères");
 
         assertThat(fakeDb.lastSensor).isNull();
     }
@@ -103,36 +109,36 @@ class SensorServiceTest {
     @NullAndEmptySource
     @ValueSource(strings = {" ", "   "})
     void addSensor_withMissingName_throwsAndDoesNotCallDatabase(String name) {
-        assertThatThrownBy(() -> service.addSensor(sensor("AMVIUS", name)))
+        assertThatThrownBy(() -> service.addSensor(sensor(EUI, name)))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Sensor name is required");
+                .hasMessage("Nom du capteur est requis");
 
         assertThat(fakeDb.lastSensor).isNull();
     }
 
     @Test
     void addSensor_withTooLongName_throwsAndDoesNotCallDatabase() {
-        assertThatThrownBy(() -> service.addSensor(sensor("AMVIUS", "n".repeat(101))))
+        assertThatThrownBy(() -> service.addSensor(sensor(EUI, "n".repeat(101))))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Sensor name must be at most 100 characters");
+                .hasMessage("Nom du capteur doit contenir au maximum 100 caractères");
 
         assertThat(fakeDb.lastSensor).isNull();
     }
 
     @Test
     void addSensor_whenDevEuiAlreadyExists_propagatesDuplicateException() {
-        fakeDb.exceptionToThrow = new DuplicateSensorException("AMVIUS");
+        fakeDb.exceptionToThrow = new DuplicateSensorException(EUI);
 
-        assertThatThrownBy(() -> service.addSensor(sensor("AMVIUS", "capteur")))
+        assertThatThrownBy(() -> service.addSensor(sensor(EUI, NAME)))
                 .isInstanceOf(DuplicateSensorException.class)
-                .hasMessageContaining("AMVIUS");
+                .hasMessageContaining(EUI);
     }
 
     @Test
     void addSensor_whenGroupDoesNotExist_propagatesGroupNotFoundException() {
         fakeDb.exceptionToThrow = new GroupNotFoundException(99);
 
-        assertThatThrownBy(() -> service.addSensor(sensor("AMVIUS", "capteur")))
+        assertThatThrownBy(() -> service.addSensor(sensor(EUI, NAME)))
                 .isInstanceOf(GroupNotFoundException.class)
                 .hasMessageContaining("99");
     }
@@ -158,7 +164,7 @@ class SensorServiceTest {
     void createGroup_withMissingName_throwsAndDoesNotCallDatabase(String name) {
         assertThatThrownBy(() -> service.createGroup(name))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Group name is required");
+                .hasMessage("Nom du groupe est requis");
 
         assertThat(fakeDb.lastGroupName).isNull();
     }

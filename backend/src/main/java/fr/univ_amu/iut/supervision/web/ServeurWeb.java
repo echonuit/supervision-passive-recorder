@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.supervision.web;
 
 import fr.univ_amu.iut.supervision.persistance.DataBase;
+import fr.univ_amu.iut.supervision.web.sensor.SensorService;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
@@ -15,7 +16,7 @@ public final class ServeurWeb {
 
     private ServeurWeb() {}
 
-    public static Javalin creer(DataBase base) {
+    public static Javalin creer(DataBase base, SensorService sensorService) {
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 

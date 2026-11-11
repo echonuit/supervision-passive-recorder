@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.supervision.web.sensor;
 
+import fr.univ_amu.iut.supervision.persistance.DbModel;
 import java.sql.SQLException;
 
 public class SensorService {
@@ -14,24 +15,32 @@ public class SensorService {
     }
 
     public int addSensor(NewSensor sensor) throws SQLException {
-        if (sensor.devEUI() == null || sensor.devEUI().isBlank()) {
-            throw new IllegalArgumentException("devEUI is required");
-        }
-        if (sensor.devEUI().length() > DEV_EUI_MAX_LENGTH) {
-            throw new IllegalArgumentException("devEUI must be at most 16 characters");
-        }
-        if (sensor.sensorName() == null || sensor.sensorName().isBlank()) {
-            throw new IllegalArgumentException("Sensor name is required");
-        }
-        if (sensor.sensorName().length() > NAME_MAX_LENGTH) {
-            throw new IllegalArgumentException("Sensor name must be at most 100 characters");
-        }
+        validerDevEui(sensor.devEUI());
+        validerNom(sensor.sensorName());
         return dbModel.addSensor(sensor);
+    }
+
+    private void validerDevEui(String devEUI) {
+        if (devEUI == null || devEUI.isBlank()) {
+            throw new IllegalArgumentException("devEUI est requis");
+        }
+        if (devEUI.length() > DEV_EUI_MAX_LENGTH) {
+            throw new IllegalArgumentException("devEUI doit contenir au maximum 16 caractères");
+        }
+    }
+
+    private void validerNom(String nom) {
+        if (nom == null || nom.isBlank()) {
+            throw new IllegalArgumentException("Nom du capteur est requis");
+        }
+        if (nom.length() > NAME_MAX_LENGTH) {
+            throw new IllegalArgumentException("Nom du capteur doit contenir au maximum 100 caractères");
+        }
     }
 
     public int createGroup(String groupName) throws SQLException {
         if (groupName == null || groupName.isBlank()) {
-            throw new IllegalArgumentException("Group name is required");
+            throw new IllegalArgumentException("Nom du groupe est requis");
         }
         return dbModel.createGroup(groupName.trim());
     }

@@ -18,7 +18,7 @@ class ServeurWebTest {
 
     @Test
     void laRouteDeSanteRepond() {
-        Javalin app = ServeurWeb.creer(null);
+        Javalin app = ServeurWeb.creer(null, null);
         JavalinTest.test(app, (serveur, client) -> {
             var reponse = client.get("/sante");
             assertThat(reponse.code()).isEqualTo(200);
@@ -28,7 +28,7 @@ class ServeurWebTest {
 
     @Test
     void laRouteDeSanteDitLaBaseAbsenteQuandIlNyEnAPas() {
-        Javalin app = ServeurWeb.creer(null);
+        Javalin app = ServeurWeb.creer(null, null);
         JavalinTest.test(app, (serveur, client) -> {
             assertThat(client.get("/sante").body().string()).contains("absente");
         });
@@ -38,7 +38,7 @@ class ServeurWebTest {
     void laRouteDeSanteDitLaBaseJoignableQuandElleLest() {
         DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
 
-        Javalin app = ServeurWeb.creer(base);
+        Javalin app = ServeurWeb.creer(base, null);
         JavalinTest.test(app, (serveur, client) -> {
             assertThat(client.get("/sante").body().string()).contains("joignable");
         });
@@ -46,7 +46,7 @@ class ServeurWebTest {
 
     @Test
     void laPageDAccueilSeRend() {
-        Javalin app = ServeurWeb.creer(null);
+        Javalin app = ServeurWeb.creer(null, null);
         JavalinTest.test(app, (serveur, client) -> {
             var reponse = client.get("/");
             assertThat(reponse.code()).isEqualTo(200);

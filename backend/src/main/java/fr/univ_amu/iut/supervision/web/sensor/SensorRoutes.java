@@ -19,11 +19,11 @@ public class SensorRoutes {
             ctx.status(201).json(Map.of("id", id));
         });
 
-        config.routes.exception(IllegalArgumentException.class, (e, ctx) ->
-                ctx.status(400).json(Map.of("error", e.getMessage())));
-        config.routes.exception(DuplicateSensorException.class, (e, ctx) ->
-                ctx.status(409).json(Map.of("error", e.getMessage())));
-        config.routes.exception(GroupNotFoundException.class, (e, ctx) ->
-                ctx.status(404).json(Map.of("error", e.getMessage())));
+        config.routes.exception(
+                IllegalArgumentException.class, (e, ctx) -> ctx.status(400).json(Map.of("error", e.getMessage())));
+        config.routes.exception(
+                DuplicateSensorException.class, (e, ctx) -> ctx.status(409).json(Map.of("error", e.getMessage())));
+        config.routes.exception(
+                GroupNotFoundException.class, (e, ctx) -> ctx.status(404).json(Map.of("error", e.getMessage())));
     }
 }
