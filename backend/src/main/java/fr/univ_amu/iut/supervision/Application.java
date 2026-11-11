@@ -24,6 +24,7 @@ public final class Application {
         Configuration config = Configuration.fromEnvironment();
 
         DataBase base = DataBase.connect(config);
+        DbModel dbModel = new DbModel();
         ArchiveTrames archive = ArchiveTrames.connecter(config);
 
         TramesSource source = createSource(config);
@@ -32,7 +33,7 @@ public final class Application {
         Superviseur superviseur = new Superviseur(base);
         superviseur.start();
 
-        SensorService sensorService = new SensorService(new DbModel());
+        SensorService sensorService = new SensorService(dbModel);
 
         Javalin app = ServeurWeb.creer(base, sensorService);
         app.start(config.port());

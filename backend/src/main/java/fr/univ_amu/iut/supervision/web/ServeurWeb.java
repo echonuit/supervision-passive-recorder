@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.supervision.web;
 
 import fr.univ_amu.iut.supervision.persistance.DataBase;
+import fr.univ_amu.iut.supervision.web.sensor.NewSensor;
 import fr.univ_amu.iut.supervision.web.sensor.SensorService;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
@@ -20,7 +21,6 @@ public final class ServeurWeb {
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
-        // Depuis Javalin 7, les routes se déclarent dans la configuration.
         return Javalin.create(config -> {
             config.fileRenderer(new JavalinJte(moteur));
 
@@ -33,10 +33,23 @@ public final class ServeurWeb {
                             base == null ? "absente" : (base.isJoinable() ? "joignable" : "injoignable"))));
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
+
+            // Routes API pour les capteurs et groupes
+            config.routes.post("/api/sensors", ctx -> {
+                NewSensor newSensor = ctx.bodyAsClass(NewSensor.class);
+                int id = sensorService.addSensor(newSensor);
+                ctx.status(201).json(Map.of("id", id));
+            });
+
+            config.routes.post("/api/groups", ctx -> {
+                Map<String, String> body = ctx.bodyAsClass(Map.class);
+                String name = body.get("name");
+                int id = sensorService.createGroup(name);
+                ctx.status(201).json(Map.of("id", id));
+            });
         });
     }
 
-    /** Permet de lancer depuis la racine du dépôt ou depuis backend/. */
     private static Path dossierDesGabarits() {
         Path local = Path.of("src", "main", "jte");
         return Files.isDirectory(local) ? local : Path.of("backend", "src", "main", "jte");

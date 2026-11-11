@@ -19,6 +19,12 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+    <groupId>org.mariadb.jdbc</groupId>
+    <artifactId>mariadb-java-client</artifactId>
+    <version>3.5.1</version> <!-- ou version adaptée -->
+    </dependency>
+
     <!-- HTTP et rendu -->
     <dependency>
       <groupId>io.javalin</groupId>
