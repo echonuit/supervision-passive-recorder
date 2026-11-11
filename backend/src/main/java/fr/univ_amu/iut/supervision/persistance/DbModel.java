@@ -32,6 +32,24 @@ public class DbModel {
 //    }
 
     /**
+     * Check if the user (identified by his id) exist in the database.
+     * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters.
+     * @return True of the user exist in the database, false otherwise.
+     * @throws SQLException
+     */
+    public boolean userExist(String id) throws SQLException {
+        try (Connection conn = dbConnection.connect()) {
+            PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT idUtilisateur FROM Utilisateur WHERE idUtilisateur = ?;");
+            stmt.setString(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return true;
+            } else return false;
+        }
+    }
+
+    /**
      * Register the user in the database.
      * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters.
      * @param lastName His last name, alphanumerical string of maximum 100 characters.
@@ -48,7 +66,7 @@ public class DbModel {
             stmt.setString(2, lastName);
             stmt.setString(3, ScientistName);
             stmt.setString(4, firstName);
-            System.out.println(stmt);
+            System.out.println("LOG : " + stmt);
             stmt.executeUpdate();
         }
     }
@@ -63,7 +81,7 @@ public class DbModel {
         try (Connection conn = dbConnection.connect()) {
             PreparedStatement stmt = conn.prepareStatement("DELETE FROM Utilisateur WHERE idUtilisateur = ?");
             stmt.setString(1, id);
-            System.out.println(stmt);
+            System.out.println("LOG : " + stmt);
             stmt.executeUpdate();
         }
     }

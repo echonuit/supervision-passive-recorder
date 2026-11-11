@@ -72,7 +72,10 @@ public final class ServeurWeb {
                 ctx.sessionAttribute("UserEmail", profil.email());
                 ctx.sessionAttribute("UserPseudo", profil.pseudo());
                 // TODO add a sys to prevent having to write the user again in the database.
-                base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
+                if (!base.userExist(profil._id)){
+                    System.out.println("LOG : Creating entry in the database for user " + profil._id);
+                    base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
+                }
                 System.out.println("The session now these attributes : "+ profil);
             });
             // Send to the front-end server, the attribute of the Session
@@ -96,6 +99,15 @@ public final class ServeurWeb {
                     base.deleteUser(ctx.sessionAttribute("UserId"));
                     ctx.req().getSession().invalidate();
                 }
+            });
+            config.routes.get("/api/checkUser", ctx ->{
+                String id = ctx.sessionAttribute("UserId");
+                if (id != null) {
+                   System.out.println("Does user ("+ id +") exist ? : " + base.userExist(id) );
+                } else {
+                   System.out.println("WARNING : the user id is null");
+                }
+//                base.userExist(ctx.sessionAttribute("UserId"));
             });
         });
         return app;
