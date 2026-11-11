@@ -91,9 +91,10 @@ public final class ServeurWeb {
             });
             // Delete the user of the session from the database
             // TODO need testing
-            config.routes.get("/api/delete-users/:id", ctx -> {
+            config.routes.get("/api/delete-users", ctx -> {
                 if (ctx.sessionAttribute("UserId") != null) {
                     base.deleteUser(ctx.sessionAttribute("UserId"));
+                    ctx.req().getSession().invalidate();
                 }
             });
         });
