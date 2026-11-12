@@ -23,14 +23,14 @@ public final class Application {
         Configuration config = Configuration.fromEnvironment();
 
         DataBase base = DataBase.connect(config);
-        // we use this, because other system are not up to date for the new class that manage the database
+        // we use base2, because other system are not up to date for the new class that manage the database
         DbModel base2 = new DbModel();
         ArchiveTrames archive = ArchiveTrames.connecter(config);
 
         TramesSource source = createSource(config);
         source.start(archive::archiver);
 
-        // TODO change
+        // TODO change the argument used by the constructor of Superviseur, make necessary change in Superviseur
         Superviseur superviseur = new Superviseur(base);
         superviseur.start();
 

@@ -44,7 +44,6 @@ public final class ServeurWeb {
     }
 
     public static Javalin creer(DbModel base) {
-        LoginService loginService =  new LoginService();
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
@@ -53,9 +52,8 @@ public final class ServeurWeb {
             // create a session handler
             config.jetty.modifyServletContextHandler(handler -> handler.setSessionHandler(createSessionHandler()) );
 
-            // Since the front-end use React+vite, this line may become useless
+            // Since the front-end use React+vite, these line may become useless
             config.fileRenderer(new JavalinJte(moteur));
-
             config.routes.get("/", ctx -> ctx.render("index.jte"));
 
             // Get all the users id and last name in a JSON
@@ -72,8 +70,6 @@ public final class ServeurWeb {
                 // Write the attribute of the user in the session
                 ctx.sessionAttribute("UserId", profil._id() );
                 ctx.sessionAttribute("UserEmail", profil.email());
-                ctx.sessionAttribute("UserPseudo", profil.pseudo());
-                // TODO add a sys to prevent having to write the user again in the database.
                 if (!base.userExist(profil._id)){
                     System.out.println("LOG : Creating entry in the database for user " + profil._id);
                     base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
@@ -91,7 +87,6 @@ public final class ServeurWeb {
                     ctx.status(200);
                 }
             });
-            // TODO : implement in the fron-end
             config.routes.get("/api/disconnect", ctx -> {
                 // should destroy the session of the user
                 System.out.println("LOG : End of the session for user " + ctx.sessionAttribute("UserId"));
@@ -100,13 +95,11 @@ public final class ServeurWeb {
                 ctx.status(200);
             });
             // Delete the user of the session from the database
-            // TODO implement to front-end
             config.routes.post("/api/delete/user", ctx -> {
                 if (ctx.sessionAttribute("UserId") != null) {
                     base.deleteUser(ctx.sessionAttribute("UserId"));
                     ctx.req().getSession().invalidate();
                 }
-                // Check if this is correct
                 ctx.status(200);
             });
             // Check if a user already exist in the database, print the result.

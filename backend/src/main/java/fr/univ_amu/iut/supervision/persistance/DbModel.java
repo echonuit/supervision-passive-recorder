@@ -47,7 +47,7 @@ public class DbModel {
      * Check if the user (identified by his id) exist in the database.
      * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters.
      * @return True of the user exist in the database, false otherwise.
-     * @throws SQLException
+     * @throws SQLException Throw a SLQException if an error occurs to the database.
      */
     public boolean userExist(String id) throws SQLException {
         try (Connection conn = dbConnection.connect()) {
@@ -67,7 +67,7 @@ public class DbModel {
      * @param lastName His last name, alphanumerical string of maximum 100 characters.
      * @param ScientistName His scientist name, alphanumerical string of maximum 50 characters.
      * @param firstName His first name, alphanumerical string of maximum 50 characters.
-     * @throws SQLException
+     * @throws SQLException Throw a SLQException if an error occurs to the database.
      */
     public void registerUser(String id,String lastName, String ScientistName, String firstName) throws SQLException {
         try (Connection conn = dbConnection.connect()) {
@@ -85,7 +85,7 @@ public class DbModel {
     /**
      * Delete a user from the database.
      * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters
-     * @throws SQLException
+     * @throws SQLException Throw a SLQException if an error occurs to the database.
      */
     public void deleteUser(String id) throws SQLException {
         try (Connection conn = dbConnection.connect()) {
@@ -99,7 +99,7 @@ public class DbModel {
     /**
      * Return a list of all the users.
      * @return A list of pair.
-     * @throws SQLException
+     * @throws SQLException Throw a SLQException if an error occurs to the database.
      */
     public List<Map<String, Object>> getAllUsers() throws SQLException {
         List<Map<String, Object>> users = new ArrayList<>();
