@@ -2,17 +2,15 @@ package fr.univ_amu.iut.supervision.web;
 import fr.univ_amu.iut.supervision.persistance.DbModel;
 
 import io.javalin.Javalin;
-
 import io.javalin.testtools.JavalinTest;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import io.javalin.testtools.HttpClient;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -87,10 +85,11 @@ public class ServeurWebTest {
 		JavalinTest.test(app, (server, client) -> {
 			login(client);
 			var res = client.get("/api/getSessionAttributes");
+			System.out.println(res.body().string());
 			assertEquals(200, res.code());
-			assertTrue(res.body().string().contains("\"_id\":\"1\""));
-			assertTrue(res.body().string().contains("\"pseudo\":\"PSEUDO01\""));
-			assertTrue(res.body().string().contains("\"email\":\"EMAIL01\""));
+			assertThat(res.body().string().contains("\"_id\"=\"1\""));
+			assertThat(res.body().string().contains("\"pseudo\"=\"PSEUDO01\""));
+			assertThat(res.body().string().contains("\"email\"=\"EMAIL01\""));
 		});
 	}
 	@Test
