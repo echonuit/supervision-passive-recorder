@@ -87,6 +87,10 @@ function Login({ onLogin = () => {} }) {
             profil.email = raw_profil.email;
             console.log(profil);
             await envoieProfilBackend(event, profil);
+
+            localStorage.setItem("nomUtilisateur", profil.pseudo);
+            localStorage.setItem("idUtilisateur", profil._id);
+
             onLogin({ profil, token: tokenNettoye });
         } catch (e) {
             if (e.status === 401 || e.status === 403) {

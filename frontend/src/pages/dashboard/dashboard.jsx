@@ -8,7 +8,8 @@ const libellesEtat = {
   critique: "Critique",
 };
 
-function Dashboard() {
+function Dashboard({ onLogout }) {
+  const [nomAffichage] = useState(localStorage.getItem("nomUtilisateur") || "Utilisateur");
   const [modalOuverte, setModalOuverte] = useState(false);
 
   const [nomCapteur, setNomCapteur] = useState("");
@@ -44,12 +45,13 @@ function Dashboard() {
     const correspondEtat = filtreEtat === "tous" || capteur.etat === filtreEtat;
     return correspondTexte && correspondEtat;
   });
-
+  
   return (
-    <div className="page-tableau-de-bord">
-      <Sidebar pageActive="dashboard" onAjouterBoite={ouvrirModal} />
+      <div className="page-tableau-de-bord">
+        {/* 👇 2. Ajoute onLogout={onLogout} ici */}
+        <Sidebar pageActive="dashboard" onAjouterBoite={ouvrirModal} onLogout={onLogout} />
 
-      <main className="contenu-principal">
+        <main className="contenu-principal">
         <h1>Dashboard</h1>
 
         <div className="barre-outils">
