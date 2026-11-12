@@ -53,7 +53,9 @@ public class ServeurWebTest {
 //	++++++++++ /api/sentProfil ++++++++++
 	@Test
 	public void testApiSentProfilCorrectly() throws SQLException {
-		// TODO
+		// N
+//
+//        when(dbModel.registerUser( "1", "LAST-NAME01", "SC-NAME01", "FIRST-NAME01"));
 	}
 
 //	++++++++++ /api/getSessionAttributes ++++++++++

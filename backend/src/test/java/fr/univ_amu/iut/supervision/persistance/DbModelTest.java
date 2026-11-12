@@ -59,7 +59,7 @@ public class DbModelTest {
 	@Test
 	void TestRegisterUserThrowsWhenIdIsTooLong() {
 		String tooLongId = "a".repeat(101);
-		assertThrows(SQLException.class, () -> dbModel.registerUser(tooLongId, "Dupont", "Curie", "Marie"));
+		assertThrows(SQLException.class, () -> dbModel.registerUser(tooLongId, "LAST-NAME01", "SC-NAME01", "FIRST-NAME01"));
 	}
 	@Test
 	void TestRegisterUserCorrectly(){
