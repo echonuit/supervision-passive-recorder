@@ -14,10 +14,10 @@ public class SensorService {
         this.dbModel = dbModel;
     }
 
-    public int addSensor(NewSensor sensor) throws SQLException {
+    public int addSensor(NewSensor sensor, String userId) throws SQLException {
         validerDevEui(sensor.devEUI());
         validerNom(sensor.sensorName());
-        return dbModel.addSensor(sensor);
+        return dbModel.addSensor(sensor, userId);
     }
 
     private void validerDevEui(String devEUI) {

@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../../components/sidebar";
+import Sidebar from "../../components/sidebar/sidebar";
 import "./dashboard.css";
 
 const libellesEtat = {
+  Stable: "Stable",
+  Avertissement: "Avertissement",
+  Critique: "Critique",
   stable: "Stable",
   avertissement: "Avertissement",
   critique: "Critique",
 };
 
-function Dashboard() {
+function Dashboard({ onLogout }) {
   const [modalOuverte, setModalOuverte] = useState(false);
 
   const [devEUI, setDevEUI] = useState("");
@@ -18,12 +21,28 @@ function Dashboard() {
   
   const [rechercheChoisie, setRechercheChoisie] = useState("");
   const [nouvelleRecherche, setNouvelleRecherche] = useState("");
-  const [groupes, setGroupes] = useState([]); // Liste des groupes existants
+  const [groupes, setGroupes] = useState([]);
 
   const [capteurs, setCapteurs] = useState([]);
   const [texteRecherche, setTexteRecherche] = useState("");
   const [filtreEtat, setFiltreEtat] = useState("tous");
   const [erreurFormulaire, setErreurFormulaire] = useState("");
+
+  const chargerCapteurs = () => {
+    fetch('/api/table/sensors')
+      .then(res => {
+        if (!res.ok) throw new Error("Erreur lors de la récupération des capteurs");
+        return res.json();
+      })
+      .then(data => setCapteurs(data))
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    chargerCapteurs();
+    const interval = setInterval(chargerCapteurs, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   function ouvrirModal() {
     setModalOuverte(true);
@@ -57,7 +76,7 @@ function Dashboard() {
         const texteGroupe = await reponseGroupe.text();
         let dataGroupe = null;
         if (texteGroupe) {
-          try { dataGroupe = JSON.parse(texteGroupe); } catch (e) { /* ignore */ }
+          try { dataGroupe = JSON.parse(texteGroupe); } catch (e) {}
         }
 
         if (!reponseGroupe.ok) {
@@ -86,7 +105,7 @@ function Dashboard() {
       const texteCapteur = await reponseCapteur.text();
       let dataCapteur = null;
       if (texteCapteur) {
-        try { dataCapteur = JSON.parse(texteCapteur); } catch (e) { /* ignore */ }
+        try { dataCapteur = JSON.parse(texteCapteur); } catch (e) {}
       }
 
       if (!reponseCapteur.ok) {
@@ -94,6 +113,7 @@ function Dashboard() {
       }
 
       fermerModal();
+      chargerCapteurs();
       
     } catch (erreur) {
       setErreurFormulaire(erreur.message);
@@ -101,16 +121,16 @@ function Dashboard() {
   }
 
   const capteursAffiches = capteurs.filter((capteur) => {
-    const correspondTexte = (capteur.id || capteur.devEUI || "")
-      .toLowerCase()
-      .includes(texteRecherche.toLowerCase());
-    const correspondEtat = filtreEtat === "tous" || capteur.etat === filtreEtat;
+    const nomOuId = capteur.name || capteur.devEUI || "";
+    const correspondTexte = nomOuId.toLowerCase().includes(texteRecherche.toLowerCase());
+    const statutCapteur = (capteur.status || capteur.etat || "").toLowerCase();
+    const correspondEtat = filtreEtat === "tous" || statutCapteur === filtreEtat.toLowerCase();
     return correspondTexte && correspondEtat;
   });
 
   return (
     <div className="page-tableau-de-bord">
-      <Sidebar pageActive="dashboard" onAjouterBoite={ouvrirModal} />
+      <Sidebar pageActive="dashboard" onAjouterBoite={ouvrirModal} onLogout={onLogout} />
 
       <main className="contenu-principal">
         <h1>Dashboard</h1>
@@ -149,29 +169,33 @@ function Dashboard() {
                 <td colSpan={5}>Aucun capteur</td>
               </tr>
             ) : (
-              capteursAffiches.map((capteur) => (
-                <tr key={capteur.id || capteur.devEUI}>
-                  <td>{capteur.id || capteur.devEUI}</td>
-                  <td>
-                    <span className="jauge-batterie">
-                      <span
-                        className={`jauge-remplissage jauge-${capteur.etat || "stable"}`}
-                        style={{ width: `${capteur.batterie || 100}%` }}
-                      ></span>
-                    </span>{" "}
-                    {capteur.batterie || 100}%
-                  </td>
-                  <td className={`etat-${capteur.etat || "stable"}`}>
-                    {libellesEtat[capteur.etat || "stable"]}
-                  </td>
-                  <td className={capteur.etat === "stable" ? "" : "alerte"}>
-                    {capteur.alerte || "-"}
-                  </td>
-                  <td>
-                    <button type="button">Détails</button>
-                  </td>
-                </tr>
-              ))
+              capteursAffiches.map((capteur) => {
+                const etatKey = capteur.status || capteur.etat || "Stable";
+                const batterieVal = capteur.battery !== undefined ? capteur.battery : (capteur.batterie || 100);
+                return (
+                  <tr key={capteur.id || capteur.devEUI}>
+                    <td>{capteur.name || capteur.devEUI}</td>
+                    <td>
+                      <span className="jauge-batterie">
+                        <span
+                          className={`jauge-remplissage jauge-${etatKey.toLowerCase()}`}
+                          style={{ width: `${batterieVal}%` }}
+                        ></span>
+                      </span>{" "}
+                      {batterieVal}%
+                    </td>
+                    <td className={`etat-${etatKey.toLowerCase()}`}>
+                      {libellesEtat[etatKey] || etatKey}
+                    </td>
+                    <td className={etatKey.toLowerCase() === "stable" ? "" : "alerte"}>
+                      {capteur.alert || capteur.alerte || "-"}
+                    </td>
+                    <td>
+                      <button type="button" onClick={() => alert(`Détails du capteur : ${capteur.name}`)}>Détails</button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

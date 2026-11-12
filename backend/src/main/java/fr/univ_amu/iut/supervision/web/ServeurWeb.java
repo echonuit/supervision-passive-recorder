@@ -4,6 +4,7 @@ import fr.univ_amu.iut.supervision.persistance.DataBase;
 import fr.univ_amu.iut.supervision.persistance.DbModel;
 import fr.univ_amu.iut.supervision.web.sensor.NewSensor;
 import fr.univ_amu.iut.supervision.web.sensor.SensorService;
+import fr.univ_amu.iut.supervision.web.table.TableService;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
@@ -15,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-/** Construction de l'application Javalin : routes, rendu, et rien d'autre. */
 public final class ServeurWeb {
     private static final int sessionIdleTimeOut = -1;
 
@@ -31,7 +31,7 @@ public final class ServeurWeb {
         return sessionHandler;
     }
 
-    public static Javalin creer(DataBase base, DbModel dbModel, SensorService sensorService) {
+    public static Javalin creer(DataBase base, DbModel dbModel, SensorService sensorService, TableService tableService) {
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
@@ -41,7 +41,6 @@ public final class ServeurWeb {
 
             config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
 
-            // --- Routes Utilisateurs & Profils ---
             config.routes.get("/api/users", ctx -> {
                 ctx.json(dbModel.getAllUsers());
             });
@@ -83,11 +82,28 @@ public final class ServeurWeb {
                 }
             });
 
-            // --- Routes Capteurs & Groupes (Ajout + Dashboard) ---
             config.routes.post("/api/sensors", ctx -> {
+                String userId = ctx.sessionAttribute("UserId");
+                if (userId == null) {
+                    ctx.status(401).json(Map.of("error", "Utilisateur non authentifié"));
+                    return;
+                }
                 NewSensor newSensor = ctx.bodyAsClass(NewSensor.class);
-                int id = sensorService.addSensor(newSensor);
+                int id = sensorService.addSensor(newSensor, userId);
                 ctx.status(201).json(Map.of("id", id));
+            });
+
+            config.routes.get("/api/table/sensors", ctx -> {
+                String userId = ctx.sessionAttribute("UserId");
+                if (userId == null) {
+                    ctx.status(401).json(Map.of("error", "Utilisateur non authentifié"));
+                    return;
+                }
+                try {
+                    ctx.json(tableService.getDashboardSensors(userId));
+                } catch (Exception e) {
+                    ctx.status(500).json(Map.of("error", e.getMessage()));
+                }
             });
 
             config.routes.post("/api/groups", ctx -> {
@@ -95,17 +111,6 @@ public final class ServeurWeb {
                 String name = body.get("name");
                 int id = sensorService.createGroup(name);
                 ctx.status(201).json(Map.of("id", id));
-            });
-
-            config.routes.get("/api/sensors", ctx -> {
-                try {
-                    // Récupère les capteurs pour le tableau de bord
-                    int accountId = 1; // Ou basé sur la session si nécessaire
-                    var sensors = dbModel.getSensorsForTable(accountId);
-                    ctx.json(sensors);
-                } catch (Exception e) {
-                    ctx.status(500).json(Map.of("error", e.getMessage()));
-                }
             });
         });
 
