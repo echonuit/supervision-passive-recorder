@@ -9,27 +9,39 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Class used to run SQL query and manipulate the database.
+ */
 public class DbModel {
 
-    private final DbConnection dbConnection = new DbConnection();
+    /**
+     * Class Attribute that represent the connection to the database
+     */
+    private final DbConnection dbConnection;
 
-//    public List<Media> getAllMedia() throws SQLException {
-//        List<Media> result = new ArrayList<>();
-//
-//        try (Connection conn = dbConnection.connect();
-//             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM media");
-//             ResultSet rs = stmt.executeQuery()) {
-//
-//            while (rs.next()) {
-//                result.add(new Media(
-//                    rs.getInt("id"),
-//                    rs.getString("title"),
-//                    rs.getString("type")
-//                ));
-//            }
-//        }
-//        return result;
-//    }
+    /**
+     * Constructor for this class, create a DbConnection object automatically.
+     */
+    public DbModel() {
+        this.dbConnection = new DbConnection();
+    }
+
+    // Used for unit test
+    /**
+     * Constructor for this class, demand a DbConnection object.
+     * @param dbConnection A DbConnection object.
+     */
+    public DbModel(DbConnection dbConnection) {
+        this.dbConnection = dbConnection;
+    }
+
+    /**
+     * Getter for the dbConnection class attribute.
+     * @return A dbConnection object.
+     */
+    public DbConnection getDbConnection() {
+        return dbConnection;
+    }
 
     /**
      * Check if the user (identified by his id) exist in the database.
@@ -59,7 +71,6 @@ public class DbModel {
      */
     public void registerUser(String id,String lastName, String ScientistName, String firstName) throws SQLException {
         try (Connection conn = dbConnection.connect()) {
-            // TODO : report field in the Utilisateur Table that are
             PreparedStatement stmt = conn.prepareStatement(
                     "REPLACE INTO Utilisateur (idUtilisateur, nomUtilisateur, nomChercheur, prenomChercheur) VALUES (?,?,?,?)");
             stmt.setString(1, id);
@@ -77,7 +88,6 @@ public class DbModel {
      * @throws SQLException
      */
     public void deleteUser(String id) throws SQLException {
-        // TODO : test it
         try (Connection conn = dbConnection.connect()) {
             PreparedStatement stmt = conn.prepareStatement("DELETE FROM Utilisateur WHERE idUtilisateur = ?");
             stmt.setString(1, id);
@@ -87,8 +97,8 @@ public class DbModel {
     }
 
     /**
-     * Return a list of all the users
-     * @return A list of pair
+     * Return a list of all the users.
+     * @return A list of pair.
      * @throws SQLException
      */
     public List<Map<String, Object>> getAllUsers() throws SQLException {
