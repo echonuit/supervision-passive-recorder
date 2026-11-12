@@ -6,18 +6,27 @@ import photoProfilPlaceholder from "../asset/pp_placeholder.jpg";
 function Sidebar({ pageActive, onAjouterBoite, onLogout }) {
   const [menuOuvert, setMenuOuvert] = useState(false);
 
+  // Récupération des données sauvegardées
+  const [nomAffichage] = useState(localStorage.getItem("nomUtilisateur") || "Utilisateur");
+  const idUtilisateur = localStorage.getItem("idUtilisateur");
+
+  // Chemin mis à jour vers le dossier public/pp/
+  const photoUrl = idUtilisateur ? `/pp/${idUtilisateur}.jpg` : photoProfilPlaceholder;
+
   /**
    * Handle the logout logic front-end side
    * @returns {Promise<void>}
    */
-  async function handleLogout() {
+  async function handleLogoutClick() {
     try {
-      await fetch('/api/disconnect', { method: 'GET' })
-      console.log("LOG : End session")
-      // TODO redirect to login
-    }
-    catch (err) {
-      console.log('Error: ' + err.message)
+      await fetch('/api/disconnect', { method: 'GET' });
+      console.log("LOG : End session");
+    } catch (err) {
+      console.log('Error: ' + err.message);
+    } finally {
+      // Quoi qu'il arrive avec le serveur, on vide la mémoire locale
+      // et on redirige vers Login (grâce à la fonction onLogout de App.jsx)
+      onLogout();
     }
   }
 
@@ -26,15 +35,31 @@ function Sidebar({ pageActive, onAjouterBoite, onLogout }) {
    * @returns {Promise<void>}
    */
   async function handleAccountDeletion() {
-    // TODO : implement, use /api/delete/user for deleting the user from the database
+    // 1. Demander confirmation avant de supprimer (sécurité)
+    const confirmation = window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.");
+    if (!confirmation) return;
+
+    try {
+      // 2. Appel à l'API Javalin pour supprimer le compte en base de données
+      const res = await fetch('/api/delete/user', {
+        method: 'POST', // Ton backend pourrait utiliser 'DELETE', change si besoin
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _id: idUtilisateur }), // On envoie l'ID pour indiquer qui supprimer
+      });
+
+      if (res.ok) {
+        console.log("LOG : Compte supprimé avec succès");
+        // 3. Déconnexion automatique et redirection vers Login
+        onLogout();
+      } else {
+        console.error("Erreur lors de la suppression :", res.status);
+        alert("Erreur lors de la suppression du compte.");
+      }
+    } catch (err) {
+      console.log('Error: ' + err.message);
+      alert("Impossible de joindre le serveur pour supprimer le compte.");
+    }
   }
-
-  // Récupération des données sauvegardées
-  const [nomAffichage] = useState(localStorage.getItem("nomUtilisateur") || "Utilisateur");
-  const idUtilisateur = localStorage.getItem("idUtilisateur");
-
-  // 👇 Chemin mis à jour vers le dossier public/pp/
-  const photoUrl = idUtilisateur ? `/pp/${idUtilisateur}.jpg` : photoProfilPlaceholder;
 
   return (
       <aside className="sidebar">
@@ -90,12 +115,13 @@ function Sidebar({ pageActive, onAjouterBoite, onLogout }) {
         <div className="sidebar__utilisateur">
           {menuOuvert && (
               <div className="sidebar__menu">
-                {/* 👇 2. Ajoute le onClick={onLogout} sur le bouton */}
-                <button type="button" onClick={onLogout}>
+                {/* Appel de handleLogoutClick au lieu de onLogout direct */}
+                <button type="button" onClick={handleLogoutClick}>
                   Déconnexion
                 </button>
 
-                <button type="button" className="sidebar__menu-danger">
+                {/* Appel de handleAccountDeletion ici */}
+                <button type="button" className="sidebar__menu-danger" onClick={handleAccountDeletion}>
                   Supprimer le compte
                 </button>
               </div>
@@ -106,7 +132,6 @@ function Sidebar({ pageActive, onAjouterBoite, onLogout }) {
               className="sidebar__bouton-utilisateur"
               onClick={() => setMenuOuvert((ouvert) => !ouvert)}
           >
-            {/* Image gérée dynamiquement avec un fallback en cas d'erreur 404 */}
             <img
                 className="sidebar__avatar"
                 src={photoUrl}
