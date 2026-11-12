@@ -4,7 +4,7 @@ import fr.univ_amu.iut.supervision.persistance.DbModel;
 import io.javalin.Javalin;
 
 import io.javalin.testtools.JavalinTest;
-import org.junit.jupiter.api.AfterEach;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import io.javalin.testtools.HttpClient;
-import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -113,5 +112,33 @@ public class ServeurWebTest {
 		});
 	}
 //	++++++++++ /api/delete/user ++++++++++
+	@Test
+	public void testApiDeleteUserCorrectly() throws SQLException {
+		when(dbModel.userExist(profil.get("_id"))).thenReturn(false);
 
+		JavalinTest.test(app, (server, client) -> {
+			login(client);
+			assertEquals(200, client.post("/api/delete/user", profil).code());
+			assertEquals("", client.get("/api/getSessionAttributes").body().string());
+		});
+	}
+// ++++++++++ /api/checkUser ++++++++++
+	@Test
+	public void testApiCheckUserCorrectly() throws SQLException {
+		JavalinTest.test(app, (server, client) -> {
+			login(client);
+			// since /api/checkUser will only for the moment print the output we only need to check if the SQL query has been executed
+			assertEquals(200, client.get("/api/checkUser").code());
+			// Two 2 time userExis() is called when /api/sentProfil and /api/checkUser
+			verify(dbModel, times(2)).userExist(profil.get("_id"));
+		});
+	}
+
+// ++++++++++ createSessionHandler() ++++++++++
+	@Test
+	public void testCreateSessionHandlerCorrectly() throws SQLException {
+		SessionHandler sessionHandler = ServeurWeb.createSessionHandler();
+		assertEquals(-1, sessionHandler.getMaxInactiveInterval());
+		assertTrue(sessionHandler.isHttpOnly());
+	}
 }
