@@ -106,4 +106,73 @@ public class DbModel {
         }
         return users;
     }
+
+
+    private static String formatTimeAgo(LocalDateTime dateHeure) {
+        if (dateHeure == null) {
+            return "Jamais";
+        }
+        Duration duration = Duration.between(dateHeure, LocalDateTime.now());
+        long seconds = duration.getSeconds();
+
+        if (seconds < 60) {
+            return "À l'instant";
+        } else if (seconds < 3600) {
+            return "Il y a " + (seconds / 60) + " min";
+        } else if (seconds < 86400) {
+            return "Il y a " + (seconds / 3600) + " h";
+        } else {
+            return "Il y a " + (seconds / 86400) + " jour(s)";
+        }
+    }
+    
+    public static List> getSensorsForTable(int accontId) throws SQLException {
+        List> sensors = new ArrayList<>();
+
+        String query = """SELECT c.idCapteur, c.devEUI, c.nomCapteur, c.pourcentageBatterie, c.pourcentageStockage, g.nomGroupe as searchName, MAX(h.dateHeure) as derniereSynchro
+        FROM Capteur c
+        LEFT JOIN Groupe g ON c.idGroupe = g.idGroupe
+        LEFT JOIN Historique h ON c.idCapteur = h.idCapteur
+        GROUP BY c.idCapteur, c.devEUI, c.nomCapteur, c.pourcentageBatterie, c.pourcentageStockage, g.nomGroupe""";
+        
+        try (Connection conn = dbConnection.connect();
+        PreparedStatement stmt = conn.preparedStatement(query);
+        ResulSet rs = stmt.executeQuery()) {
+            while(rs.next()) {
+                Map<String, Object> Sensor = new HashMap<>();
+
+                int battery = rs.getInt("pourcentageBatterie");
+                int storage = rs.getInt("pourcentageStockage");
+
+                sensor.put("id", rs.getInt("idCapteur"));
+                sensor.put("devEUI", rs.getString("devEUI"));
+                sensor.put("name", rs.getString("nomCapteur"));
+                sensor.put("battery", battery);
+                sensor.put("storage", storage);
+                sensor.put("searchName", rs.getString("searchName"));
+                Timestamp lastSync = rs.getTimestamp("derniereSynchro");
+                LocalDateTime derniereSynchro = (timestamp != null) ? lastSync.toLocalDateTime() : null;
+                sensor.put("lastSync", formatTimeAgo(derniereSynchro));
+
+                if (batterie < 20 || stockage < 15) {
+                    sensor.put("status", "Critique");
+                    if (batterie < 20 && stockage < 15) {
+                        sensor.put("alert", "Batterie faible et stockage critique");
+                    } else if (batterie < 20) {
+                        sensor.put("alert", "Batterie faible (<20%)");
+                    } else {
+                        sensor.put("alert", "Stockage presque saturé");
+                    }
+                } else if (batterie < 40 || stockage < 30) {
+                    sensor.put("status", "Avertissement");
+                    sensor.put("alert", "Niveau de ressource moyen");
+                } else {
+                    sensor.put("status", "Stable");
+                    sensor.put("alert", "Aucune");
+            }
+            sensors.add(sensor);
+            }
+        }
+    return sensors;
+    }
 }
