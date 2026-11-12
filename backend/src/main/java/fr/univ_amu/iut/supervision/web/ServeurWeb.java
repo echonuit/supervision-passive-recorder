@@ -62,6 +62,7 @@ public final class ServeurWeb {
             config.routes.get("/api/users", ctx -> {
                 System.out.println(base.getAllUsers());
                 ctx.json(base.getAllUsers());
+                ctx.status(200);
             });
             // Receive the profil of the user that was obtained by using his vigiechiro token.
             // Write the element of the profil in session var.
@@ -78,6 +79,7 @@ public final class ServeurWeb {
                     base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
                 }
                 System.out.println("The session now these attributes : "+ profil);
+                ctx.status(201);
             });
             // Send to the front-end server, the attribute of the Session
             config.routes.get("/api/getSessionAttributes", ctx->{
@@ -86,6 +88,7 @@ public final class ServeurWeb {
                 String pseudo = ctx.sessionAttribute("UserPseudo");
                 if (id != null && email != null && pseudo != null) {
                     ctx.json(Map.of("_id", id, "email", email, "pseudo", pseudo));
+                    ctx.status(200);
                 }
             });
             // TODO : implement in the fron-end
@@ -93,6 +96,8 @@ public final class ServeurWeb {
                 // should destroy the session of the user
                 System.out.println("LOG : End of the session for user " + ctx.sessionAttribute("UserId"));
                 ctx.req().getSession().invalidate();
+                // Check if this is correct
+                ctx.status(200);
             });
             // Delete the user of the session from the database
             // TODO implement to front-end
@@ -101,6 +106,8 @@ public final class ServeurWeb {
                     base.deleteUser(ctx.sessionAttribute("UserId"));
                     ctx.req().getSession().invalidate();
                 }
+                // Check if this is correct
+                ctx.status(200);
             });
             // Check if a user already exist in the database, print the result.
             config.routes.get("/api/checkUser", ctx ->{
@@ -110,6 +117,7 @@ public final class ServeurWeb {
                 } else {
                    System.out.println("WARNING : the user id is null");
                 }
+                ctx.status(200);
             });
         });
         return app;

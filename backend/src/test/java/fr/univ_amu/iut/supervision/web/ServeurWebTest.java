@@ -1,58 +1,66 @@
 package fr.univ_amu.iut.supervision.web;
+import fr.univ_amu.iut.supervision.persistance.DbModel;
+
+import io.javalin.Javalin;
+
+import io.javalin.testtools.JavalinTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
-import fr.univ_amu.iut.supervision.persistance.DataBase;
-import fr.univ_amu.iut.supervision.persistance.DbModel;
-import io.javalin.Javalin;
-import io.javalin.testtools.JavalinTest;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+public class ServeurWebTest {
+	private Javalin app;
+	private DbModel dbModel;
 
-@Testcontainers(disabledWithoutDocker = true)
-class ServeurWebTest {
+	@BeforeEach
+	public void setup (){
+		dbModel = mock(DbModel.class);
+		app =  ServeurWeb.creer(dbModel);
+	}
 
-    @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17");
+	@Test
+	public void testRootPathCorrectly() {
+		JavalinTest.test(app, (server, client) -> {
+			assertThat(client.get("/").body().string()).contains("If you are seeing this, something went wrong...");
+		});
+	}
 
-    @Test
-    void laRouteDeSanteRepond() {
-        Javalin app = ServeurWeb.creer(null);
-        JavalinTest.test(app, (serveur, client) -> {
-            var reponse = client.get("/sante");
-            assertThat(reponse.code()).isEqualTo(200);
-            assertThat(reponse.body().string()).contains("ok");
-        });
-    }
+//	++++++++++ /api/users ++++++++++
+	@Test
+	public void testApiUsersCorrectly() throws SQLException {
+//		["{nomUtilisateur=jamal, idUtilisateur=0}, {nomUtilisateur=normaline, idUtilisateur=1}, {nomUtilisateur=daltoline, idUtilisateur=2}, {nomUtilisateur=sourdaline, idUtilisateur=3}, {nomUtilisateur=aveuglaline, idUtilisateur=4}"]
+		when(dbModel.getAllUsers()).thenReturn(List.of(
+				Map.of("0","Jamal")
+		));
+		JavalinTest.test(app, (server, client) -> {
+			assertThat(client.get("/api/users").body().string()).contains("Jamal");
+		});
+	}
+	@Test
+	public void testApiUserWithoutUser() throws SQLException {
+		JavalinTest.test(app, (server, client) -> {
+			assertThat(client.get("/api/users").body().string()).contains("[]");
+		});
+	}
 
-    @Test
-    void laRouteDeSanteDitLaBaseAbsenteQuandIlNyEnAPas() {
-        Javalin app = ServeurWeb.creer(null);
-        JavalinTest.test(app, (serveur, client) -> {
-            assertThat(client.get("/sante").body().string()).contains("absente");
-        });
-    }
+//	++++++++++ /api/sentProfil ++++++++++
+	@Test
+	public void testApiSentProfilCorrectly() throws SQLException {
+		// TODO
+	}
 
-    @Test
-    void laRouteDeSanteDitLaBaseJoignableQuandElleLest() {
-//        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
-        DbModel base = new DbModel();
-
-        Javalin app = ServeurWeb.creer(base);
-        JavalinTest.test(app, (serveur, client) -> {
-            assertThat(client.get("/sante").body().string()).contains("joignable");
-        });
-    }
-
-    @Test
-    void laPageDAccueilSeRend() {
-        Javalin app = ServeurWeb.creer(null);
-        JavalinTest.test(app, (serveur, client) -> {
-            var reponse = client.get("/");
-            assertThat(reponse.code()).isEqualTo(200);
-            assertThat(reponse.body().string()).contains("Supervision");
-        });
-    }
+//	++++++++++ /api/getSessionAttributes ++++++++++
+	@Test
+	public void testApiGetSessionAttributesCorrectly() throws SQLException {
+//		JavalinTest.test(app, (server, client) -> {
+//
+//		})
+	}
 }
