@@ -66,6 +66,10 @@ function Login({ onLogin = () => {} }) {
             profil.pseudo = raw_profil.pseudo;
             profil.email = raw_profil.email;
             console.log(profil);
+
+            localStorage.setItem("nomUtilisateur", profil.pseudo);
+            localStorage.setItem("idUtilisateur", profil._id);
+
             onLogin({ profil, token: tokenNettoye });
 
         } catch (e) {
