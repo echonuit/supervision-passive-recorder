@@ -15,49 +15,47 @@ function Sidebar({ pageActive, onAjouterBoite, onLogout }) {
 
   /**
    * Handle the logout logic front-end side
-   * @returns {Promise<void>}
    */
   async function handleLogoutClick() {
     try {
-      await fetch('/api/disconnect', { method: 'GET' });
+      await fetch('/api/disconnect', {
+        method: 'GET',
+        credentials: 'include' // 👇 OBLIGATOIRE pour que Javalin reconnaisse la session
+      });
       console.log("LOG : End session");
     } catch (err) {
-      console.log('Error: ' + err.message);
+      console.error('Error: ' + err.message);
     } finally {
-      // Quoi qu'il arrive avec le serveur, on vide la mémoire locale
-      // et on redirige vers Login (grâce à la fonction onLogout de App.jsx)
       onLogout();
     }
   }
 
   /**
    * Handle the account deletion logic front-end side
-   * @returns {Promise<void>}
    */
   async function handleAccountDeletion() {
-    // 1. Demander confirmation avant de supprimer (sécurité)
     const confirmation = window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.");
     if (!confirmation) return;
 
     try {
-      // 2. Appel à l'API Javalin pour supprimer le compte en base de données
+      // On rajoute le corps JSON (comme l'a conseillé ton collègue avec envoieProfilBackend)
+      // ET on rajoute credentials: 'include' pour la session
       const res = await fetch('/api/delete/user', {
-        method: 'POST', // Ton backend pourrait utiliser 'DELETE', change si besoin
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _id: idUtilisateur }), // On envoie l'ID pour indiquer qui supprimer
+        credentials: 'include', // 👇 OBLIGATOIRE pour la session Javalin
+        body: JSON.stringify({ _id: idUtilisateur }),
       });
 
       if (res.ok) {
-        console.log("LOG : Compte supprimé avec succès");
-        // 3. Déconnexion automatique et redirection vers Login
-        onLogout();
+        console.log("LOG : Demande de suppression envoyée au serveur");
       } else {
-        console.error("Erreur lors de la suppression :", res.status);
-        alert("Erreur lors de la suppression du compte.");
+        console.error("Erreur côté serveur :", res.status);
       }
     } catch (err) {
-      console.log('Error: ' + err.message);
-      alert("Impossible de joindre le serveur pour supprimer le compte.");
+      console.error('Erreur réseau :', err.message);
+    } finally {
+      onLogout();
     }
   }
 

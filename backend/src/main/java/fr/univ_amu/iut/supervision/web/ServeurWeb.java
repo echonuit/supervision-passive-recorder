@@ -94,9 +94,7 @@ public final class ServeurWeb {
                 System.out.println("LOG : End of the session for user " + ctx.sessionAttribute("UserId"));
                 ctx.req().getSession().invalidate();
             });
-            // Delete the user of the session from the database
-            // TODO implement to front-end
-            config.routes.get("/api/delete/user", ctx -> {
+            config.routes.post("/api/delete/user", ctx -> {
                 if (ctx.sessionAttribute("UserId") != null) {
                     base.deleteUser(ctx.sessionAttribute("UserId"));
                     ctx.req().getSession().invalidate();

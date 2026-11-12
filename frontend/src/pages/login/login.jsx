@@ -90,6 +90,7 @@ function Login({ onLogin = () => {} }) {
 
             localStorage.setItem("nomUtilisateur", profil.pseudo);
             localStorage.setItem("idUtilisateur", profil._id);
+            localStorage.setItem("token", tokenNettoye);
 
             onLogin({ profil, token: tokenNettoye });
         } catch (e) {
