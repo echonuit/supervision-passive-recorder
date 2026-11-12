@@ -1,9 +1,5 @@
 import {useState} from "react";
-import {use} from "react";
-import {useNavigate} from "react-router";
-
 import "./login.css";
-import Dashboard from "../dashboard/dashboard.jsx";
 
 const TOKEN_LENGTH = 32;
 // Chemin relais : en développement, Vite le redirige vers https://vigiechiro.herokuapp.com
@@ -47,7 +43,7 @@ async function recupererProfil(token) {
  * @returns {Promise<void>}
  */
 async function envoieProfilBackend(event,profil){
-  // Not sure why it is necessary, need to learn
+  // Not sure why it is necessary
   event.preventDefault()
   try {
     const res = await fetch('/api/sentProfil', {
@@ -59,21 +55,6 @@ async function envoieProfilBackend(event,profil){
   catch (err) {
     console.log('Error: ' + err.message)
   }
-}
-
-/**
- * Obtiens les attributs de la session utilisateur.
- * @param event
- * @returns {Promise<void>}
- */
-async function ObtientAttributSession(event){
-    event.preventDefault()
-    try {
-        return await fetch('/api/getSessionAttributes')
-          .then(res => res.json())
-    } catch (err){
-        console.log('Error: ' + err.message)
-    }
 }
 
 /**

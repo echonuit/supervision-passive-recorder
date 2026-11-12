@@ -6,7 +6,6 @@ import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
-import kotlin.reflect.KFunction;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
 import java.nio.file.Files;
@@ -57,14 +56,16 @@ public final class ServeurWeb {
             // Since the front-end use React+vite, this line may become useless
             config.fileRenderer(new JavalinJte(moteur));
 
-            config.routes.get("/", ctx -> ctx.render("index.jte", Map.of("nbBoitiers", 0)));
-            // Receive the profil of the user that was obtained by using his vigiechiro token
+            config.routes.get("/", ctx -> ctx.render("index.jte"));
 
             // Get all the users id and last name in a JSON
             config.routes.get("/api/users", ctx -> {
                 System.out.println(base.getAllUsers());
                 ctx.json(base.getAllUsers());
             });
+            // Receive the profil of the user that was obtained by using his vigiechiro token.
+            // Write the element of the profil in session var.
+            // Register the user in the database if not the case.
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
                 // Write the attribute of the user in the session
@@ -90,16 +91,18 @@ public final class ServeurWeb {
             // TODO : implement in the fron-end
             config.routes.get("/api/disconnect", ctx -> {
                 // should destroy the session of the user
+                System.out.println("LOG : End of the session for user " + ctx.sessionAttribute("UserId"));
                 ctx.req().getSession().invalidate();
             });
             // Delete the user of the session from the database
-            // TODO need testing
-            config.routes.get("/api/delete-users", ctx -> {
+            // TODO implement to front-end
+            config.routes.get("/api/delete/user", ctx -> {
                 if (ctx.sessionAttribute("UserId") != null) {
                     base.deleteUser(ctx.sessionAttribute("UserId"));
                     ctx.req().getSession().invalidate();
                 }
             });
+            // Check if a user already exist in the database, print the result.
             config.routes.get("/api/checkUser", ctx ->{
                 String id = ctx.sessionAttribute("UserId");
                 if (id != null) {
@@ -107,7 +110,6 @@ public final class ServeurWeb {
                 } else {
                    System.out.println("WARNING : the user id is null");
                 }
-//                base.userExist(ctx.sessionAttribute("UserId"));
             });
         });
         return app;

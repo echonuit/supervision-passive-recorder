@@ -5,6 +5,29 @@ import photoProfil from "../asset/pp_placeholder.jpg";
 function Sidebar({ pageActive, onAjouterBoite }) {
   const [menuOuvert, setMenuOuvert] = useState(false);
 
+  /**
+   * Handle the logout logic front-end side
+   * @returns {Promise<void>}
+   */
+  async function handleLogout() {
+    try {
+      await fetch('/api/disconnect', { method: 'GET' })
+      console.log("LOG : End session")
+      // TODO redirect to login
+    }
+    catch (err) {
+      console.log('Error: ' + err.message)
+    }
+  }
+
+  /**
+   * Handle the account deletion logic front-end side
+   * @returns {Promise<void>}
+   */
+  async function handleAccountDeletion() {
+    // TODO : implement, use /api/delete/user for deleting the user from the database
+  }
+
   return (
     <aside className="sidebar">
       <p className="sidebar__marque">Passive Recorder</p>
@@ -15,8 +38,7 @@ function Sidebar({ pageActive, onAjouterBoite }) {
           <li>
             <button
               type="button"
-              className={`sidebar__item ${pageActive === "dashboard" ? "sidebar__item--actif" : ""}`}
-            >
+              className={`sidebar__item ${pageActive === "dashboard" ? "sidebar__item--actif" : ""}`}>
               Dashboard
             </button>
           </li>
@@ -59,7 +81,7 @@ function Sidebar({ pageActive, onAjouterBoite }) {
       <div className="sidebar__utilisateur">
         {menuOuvert && (
           <div className="sidebar__menu">
-            <button type="button">Déconnexion</button>
+            <button type="button" onClick={handleLogout}>Déconnexion</button>
             <button type="button" className="sidebar__menu-danger">
               Supprimer le compte
             </button>
@@ -69,8 +91,7 @@ function Sidebar({ pageActive, onAjouterBoite }) {
         <button
           type="button"
           className="sidebar__bouton-utilisateur"
-          onClick={() => setMenuOuvert((ouvert) => !ouvert)}
-        >
+          onClick={() => setMenuOuvert((ouvert) => !ouvert)}>
           <img className="sidebar__avatar" src={photoProfil} alt="Photo de profil" />
           <span className="sidebar__nom">I m batman</span>
           <svg
