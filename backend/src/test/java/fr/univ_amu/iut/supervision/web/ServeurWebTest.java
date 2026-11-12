@@ -11,18 +11,34 @@ import org.junit.jupiter.api.Test;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import io.javalin.testtools.HttpClient;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class ServeurWebTest {
 	private Javalin app;
 	private DbModel dbModel;
 
+	private Map<String,String> profil = Map.of(
+			"_id", "1", "email", "EMAIL01", "pseudo", "PSEUDO01"
+	);
+
 	@BeforeEach
 	public void setup (){
 		dbModel = mock(DbModel.class);
 		app =  ServeurWeb.creer(dbModel);
+	}
+
+	/**
+	 * Simulate the React+Vite front-end server sending the profil, write them in the session
+	 * @param client The http client used to write the information in his session variable
+	 */
+	private void login(HttpClient client) {
+		assertEquals(201, client.post("/api/sentProfil", profil).code());
 	}
 
 	@Test
@@ -52,17 +68,50 @@ public class ServeurWebTest {
 
 //	++++++++++ /api/sentProfil ++++++++++
 	@Test
-	public void testApiSentProfilCorrectly() throws SQLException {
-		// N
-//
-//        when(dbModel.registerUser( "1", "LAST-NAME01", "SC-NAME01", "FIRST-NAME01"));
+	public void testApiSentProfilWhenUserIsNotInDatabase() throws SQLException {
+		when(dbModel.userExist(profil.get("_id"))).thenReturn(false);
+		JavalinTest.test(app, (server, client) -> {
+			assertEquals(201, client.post("/api/sentProfil", profil).code());
+		});
+	}
+	@Test
+	public void testApiSentProfilWhenUserIsInDatabase() throws SQLException {
+		when(dbModel.userExist(profil.get("_id"))).thenReturn(true);
+		JavalinTest.test(app, (server, client) -> {
+			assertEquals(201, client.post("/api/sentProfil", profil).code());
+		});
 	}
 
 //	++++++++++ /api/getSessionAttributes ++++++++++
 	@Test
-	public void testApiGetSessionAttributesCorrectly() throws SQLException {
-//		JavalinTest.test(app, (server, client) -> {
-//
-//		})
+	public void testApiGetSessionAttributesCorrectly() {
+		JavalinTest.test(app, (server, client) -> {
+			login(client);
+			var res = client.get("/api/getSessionAttributes");
+			assertEquals(200, res.code());
+			assertTrue(res.body().string().contains("\"_id\":\"1\""));
+			assertTrue(res.body().string().contains("\"pseudo\":\"PSEUDO01\""));
+			assertTrue(res.body().string().contains("\"email\":\"EMAIL01\""));
+		});
 	}
+	@Test
+	public void testApiGetSessionAttributesButSessionVarAreEmpty(){
+		JavalinTest.test(app, (server, client) -> {
+			var res = client.get("/api/getSessionAttributes");
+			assertTrue(res.body().string().isEmpty());
+		});
+	}
+
+//	++++++++++ /api/disconnect ++++++++++
+	@Test
+	public void testApiDisconnectCorrectly() {
+		JavalinTest.test(app, (server, client) -> {
+			login(client);
+			var res = client.get("/api/disconnect");
+			assertEquals(200, res.code());
+			assertTrue(res.body().string().isEmpty());
+		});
+	}
+//	++++++++++ /api/delete/user ++++++++++
+
 }
