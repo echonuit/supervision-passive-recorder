@@ -20,7 +20,12 @@ public class ServeurWebTest {
     private Javalin app;
     private DbModel dbModel;
 
-    private Map<String, String> profil = Map.of("_id", "1", "email", "EMAIL01", "pseudo", "PSEUDO01");
+    private static final String PROFIL_ID_KEY = "_id";
+    private static final String PROFIL_EMAIL_KEY = "email";
+    private static final String PROFIL_PSEUDO_KEY = "pseudo";
+
+    private Map<String, String> profil =
+            Map.of(PROFIL_ID_KEY, "1", PROFIL_EMAIL_KEY, "EMAIL01", PROFIL_PSEUDO_KEY, "PSEUDO01");
 
     @BeforeEach
     public void setup() {
@@ -65,7 +70,7 @@ public class ServeurWebTest {
     //	++++++++++ /api/sentProfil ++++++++++
     @Test
     public void testApiSentProfilWhenUserIsNotInDatabase() throws SQLException {
-        when(dbModel.userExist(profil.get("_id"))).thenReturn(false);
+        when(dbModel.userExist(profil.get(PROFIL_ID_KEY))).thenReturn(false);
         JavalinTest.test(app, (server, client) -> {
             assertEquals(201, client.post("/api/sentProfil", profil).code());
         });
@@ -73,7 +78,7 @@ public class ServeurWebTest {
 
     @Test
     public void testApiSentProfilWhenUserIsInDatabase() throws SQLException {
-        when(dbModel.userExist(profil.get("_id"))).thenReturn(true);
+        when(dbModel.userExist(profil.get(PROFIL_ID_KEY))).thenReturn(true);
         JavalinTest.test(app, (server, client) -> {
             assertEquals(201, client.post("/api/sentProfil", profil).code());
         });
@@ -87,9 +92,9 @@ public class ServeurWebTest {
             var res = client.get("/api/getSessionAttributes");
             System.out.println(res.body().string());
             assertEquals(200, res.code());
-            assertThat(res.body().string().contains("\"_id\"=\"1\""));
-            assertThat(res.body().string().contains("\"pseudo\"=\"PSEUDO01\""));
-            assertThat(res.body().string().contains("\"email\"=\"EMAIL01\""));
+            assertThat(res.body().string().contains("\" " + PROFIL_ID_KEY + " \"=\"1\""));
+            assertThat(res.body().string().contains("\" " + PROFIL_PSEUDO_KEY + " \"=\"PSEUDO01\""));
+            assertThat(res.body().string().contains("\" " + PROFIL_EMAIL_KEY + " \"=\"EMAIL01\""));
         });
     }
 
@@ -114,7 +119,7 @@ public class ServeurWebTest {
     //	++++++++++ /api/delete/user ++++++++++
     @Test
     public void testApiDeleteUserCorrectly() throws SQLException {
-        when(dbModel.userExist(profil.get("_id"))).thenReturn(false);
+        when(dbModel.userExist(profil.get(PROFIL_ID_KEY))).thenReturn(false);
 
         JavalinTest.test(app, (server, client) -> {
             login(client);
@@ -131,7 +136,7 @@ public class ServeurWebTest {
             // been executed
             assertEquals(200, client.get("/api/checkUser").code());
             // Two 2 time userExis() is called when /api/sentProfil and /api/checkUser
-            verify(dbModel, times(2)).userExist(profil.get("_id"));
+            verify(dbModel, times(2)).userExist(profil.get(PROFIL_ID_KEY));
         });
     }
 

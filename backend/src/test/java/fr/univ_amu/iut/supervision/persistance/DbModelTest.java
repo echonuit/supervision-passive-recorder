@@ -19,6 +19,11 @@ public class DbModelTest {
 
     static DbModel dbModel;
 
+    private static final String ID_STUB01 = "1";
+    private static final String LAST_NAME_STUB01 = "LAST-NAME01";
+    private static final String FIRST_NAME_STUB01 = "FIRST-NAME01";
+    private static final String SC_NAME_STUB01 = "SC-NAME01";
+
     // Used to override the method connect, used at the start of each DbModel method that create and execute a SQL
     // query.
     // Necessary because we want to connect to a database that is in the memory, not the real one.
@@ -59,19 +64,21 @@ public class DbModelTest {
     void TestRegisterUserThrowsWhenIdIsTooLong() {
         String tooLongId = "a".repeat(101);
         assertThrows(
-                SQLException.class, () -> dbModel.registerUser(tooLongId, "LAST-NAME01", "SC-NAME01", "FIRST-NAME01"));
+                SQLException.class,
+                () -> dbModel.registerUser(tooLongId, LAST_NAME_STUB01, SC_NAME_STUB01, FIRST_NAME_STUB01));
     }
 
     @Test
     void TestRegisterUserCorrectly() {
-        assertDoesNotThrow(() -> dbModel.registerUser("1", "LAST-NAME01", "SC-NAME01", "FIRST-NAME01"));
+        assertDoesNotThrow(() -> dbModel.registerUser(ID_STUB01, LAST_NAME_STUB01, SC_NAME_STUB01, FIRST_NAME_STUB01));
     }
 
     @Test
     void TestRegisterUserThrowsWhenFielEmpty() {
-        // NOTE : at the moment in the Utilisateur Table only the fiel nomUtilisateur and idUtilisateur require a no
+        // NOTE : at the moment in the Utilisateur Table only the field nomUtilisateur and idUtilisateur require a no
         // null value
-        assertThrows(SQLException.class, () -> dbModel.registerUser("1", null, "SC-NAME01", "FIRST-NAME01"));
+        assertThrows(
+                SQLException.class, () -> dbModel.registerUser(ID_STUB01, null, SC_NAME_STUB01, FIRST_NAME_STUB01));
     }
 
     //	++++++++++ getAllUser() ++++++++++
@@ -92,8 +99,8 @@ public class DbModelTest {
     //	++++++++++ userExist() ++++++++++
     @Test
     void testUserExistCorrectly() throws SQLException {
-        dbModel.registerUser("1", "LAST-NAME01", "SC-NAME01", "FIRST-NAME01");
-        assertTrue(dbModel.userExist("1"));
+        dbModel.registerUser(ID_STUB01, LAST_NAME_STUB01, SC_NAME_STUB01, FIRST_NAME_STUB01);
+        assertTrue(dbModel.userExist(ID_STUB01));
     }
 
     @Test
@@ -104,8 +111,8 @@ public class DbModelTest {
     //	++++++++++ deleteUser() ++++++++++
     @Test
     void testDeleteUserCorrectly() throws SQLException {
-        dbModel.registerUser("1", "LAST-NAME01", "SC-NAME01", "FIRST-NAME01");
-        assertDoesNotThrow(() -> dbModel.deleteUser("1"));
+        dbModel.registerUser(ID_STUB01, LAST_NAME_STUB01, SC_NAME_STUB01, FIRST_NAME_STUB01);
+        assertDoesNotThrow(() -> dbModel.deleteUser(ID_STUB01));
     }
     // NOTE : Deleting an element that does not exist will yield the same output as if we delete an element that exist.
 

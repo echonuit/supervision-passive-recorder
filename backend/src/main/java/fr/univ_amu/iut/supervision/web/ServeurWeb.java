@@ -26,6 +26,22 @@ public final class ServeurWeb {
      */
     record Profil(String _id, String email, String pseudo) {}
 
+    private static final String SESSION_USER_ID_KEY = "UserId";
+    private static final String SESSION_PSEUDO_KEY = "UserPseudo";
+    private static final String SESSION_EMAIL_KEY = "UserEmail";
+
+    public String getSessionUserIdKey() {
+        return SESSION_USER_ID_KEY;
+    }
+
+    public String getSessionPseudoKey() {
+        return SESSION_PSEUDO_KEY;
+    }
+
+    public String getSESSION_EMAIL_KEY() {
+        return SESSION_EMAIL_KEY;
+    }
+
     /**
      * Create and configure a session handler.
      * @return An object of class SessionHandler
@@ -67,8 +83,8 @@ public final class ServeurWeb {
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
                 // Write the attribute of the user in the session
-                ctx.sessionAttribute("UserId", profil._id());
-                ctx.sessionAttribute("UserEmail", profil.email());
+                ctx.sessionAttribute(SESSION_USER_ID_KEY, profil._id());
+                ctx.sessionAttribute(SESSION_EMAIL_KEY, profil.email());
                 if (!base.userExist(profil._id)) {
                     System.out.println("LOG : Creating entry in the database for user " + profil._id);
                     base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
@@ -78,9 +94,9 @@ public final class ServeurWeb {
             });
             // Send to the front-end server, the attribute of the Session
             config.routes.get("/api/getSessionAttributes", ctx -> {
-                String id = ctx.sessionAttribute("UserId");
-                String email = ctx.sessionAttribute("UserEmail");
-                String pseudo = ctx.sessionAttribute("UserPseudo");
+                String id = ctx.sessionAttribute(SESSION_USER_ID_KEY);
+                String email = ctx.sessionAttribute(SESSION_EMAIL_KEY);
+                String pseudo = ctx.sessionAttribute(SESSION_PSEUDO_KEY);
                 if (id != null && email != null && pseudo != null) {
                     ctx.json(Map.of("_id", id, "email", email, "pseudo", pseudo));
                     ctx.status(200);
@@ -95,15 +111,15 @@ public final class ServeurWeb {
             });
             // Delete the user of the session from the database
             config.routes.post("/api/delete/user", ctx -> {
-                if (ctx.sessionAttribute("UserId") != null) {
-                    base.deleteUser(ctx.sessionAttribute("UserId"));
+                if (ctx.sessionAttribute(SESSION_USER_ID_KEY) != null) {
+                    base.deleteUser(ctx.sessionAttribute(SESSION_USER_ID_KEY));
                     ctx.req().getSession().invalidate();
                 }
                 ctx.status(200);
             });
             // Check if a user already exist in the database, print the result.
             config.routes.get("/api/checkUser", ctx -> {
-                String id = ctx.sessionAttribute("UserId");
+                String id = ctx.sessionAttribute(SESSION_USER_ID_KEY);
                 if (id != null) {
                     System.out.println("Does user (" + id + ") exist ? : " + base.userExist(id));
                 } else {
