@@ -6,11 +6,10 @@ import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
-import org.eclipse.jetty.ee10.servlet.SessionHandler;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
 /** Construction de l'application Javalin : routes, rendu, et rien d'autre. */
 public final class ServeurWeb {
@@ -25,7 +24,7 @@ public final class ServeurWeb {
      * @param pseudo
      * @param email
      */
-    record Profil(String _id, String email,String pseudo) {}
+    record Profil(String _id, String email, String pseudo) {}
 
     /**
      * Create and configure a session handler.
@@ -33,7 +32,7 @@ public final class ServeurWeb {
      */
     public static SessionHandler createSessionHandler() {
         SessionHandler sessionHandler = new SessionHandler();
-                /*  <--- SESSION HANDLER OPTION / SETTING --->  */
+        /*  <--- SESSION HANDLER OPTION / SETTING --->  */
         // HTTPS only (disable for local http dev) ; TODO : set to TRUE before release
         sessionHandler.setSecureRequestOnly(false);
         // If set to true, the session cookie will not be exposed to client-side scripting code.
@@ -50,7 +49,7 @@ public final class ServeurWeb {
         // Depuis Javalin 7, les routes se déclarent dans la configuration.
         var app = Javalin.create(config -> {
             // create a session handler
-            config.jetty.modifyServletContextHandler(handler -> handler.setSessionHandler(createSessionHandler()) );
+            config.jetty.modifyServletContextHandler(handler -> handler.setSessionHandler(createSessionHandler()));
 
             // Since the front-end use React+vite, these line may become useless
             config.fileRenderer(new JavalinJte(moteur));
@@ -68,19 +67,19 @@ public final class ServeurWeb {
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
                 // Write the attribute of the user in the session
-                ctx.sessionAttribute("UserId", profil._id() );
+                ctx.sessionAttribute("UserId", profil._id());
                 ctx.sessionAttribute("UserEmail", profil.email());
-                if (!base.userExist(profil._id)){
+                if (!base.userExist(profil._id)) {
                     System.out.println("LOG : Creating entry in the database for user " + profil._id);
                     base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
                 }
-                System.out.println("The session now these attributes : "+ profil);
+                System.out.println("The session now these attributes : " + profil);
                 ctx.status(201);
             });
             // Send to the front-end server, the attribute of the Session
-            config.routes.get("/api/getSessionAttributes", ctx->{
+            config.routes.get("/api/getSessionAttributes", ctx -> {
                 String id = ctx.sessionAttribute("UserId");
-                String email= ctx.sessionAttribute("UserEmail");
+                String email = ctx.sessionAttribute("UserEmail");
                 String pseudo = ctx.sessionAttribute("UserPseudo");
                 if (id != null && email != null && pseudo != null) {
                     ctx.json(Map.of("_id", id, "email", email, "pseudo", pseudo));
@@ -103,12 +102,12 @@ public final class ServeurWeb {
                 ctx.status(200);
             });
             // Check if a user already exist in the database, print the result.
-            config.routes.get("/api/checkUser", ctx ->{
+            config.routes.get("/api/checkUser", ctx -> {
                 String id = ctx.sessionAttribute("UserId");
                 if (id != null) {
-                   System.out.println("Does user ("+ id +") exist ? : " + base.userExist(id) );
+                    System.out.println("Does user (" + id + ") exist ? : " + base.userExist(id));
                 } else {
-                   System.out.println("WARNING : the user id is null");
+                    System.out.println("WARNING : the user id is null");
                 }
                 ctx.status(200);
             });

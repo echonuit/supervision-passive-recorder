@@ -16,8 +16,8 @@ public class DbConnection {
     private final String ENVPATH = ".env";
     // We default to system env variable
     private String DB_HOSTNAME = System.getenv("DB_HOSTNAME");
-    private String DB_NAME     = System.getenv("DB_NAME");
-    private String DB_USER     = System.getenv("DB_USER");
+    private String DB_NAME = System.getenv("DB_NAME");
+    private String DB_USER = System.getenv("DB_USER");
     private String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
     private static Map<String, String> values = new HashMap<>();
@@ -27,9 +27,9 @@ public class DbConnection {
      * of the parameter, and write them in their respective class attributes.
      */
     public void readDotEnv() {
-        try{
+        try {
             // Read all the line of the .env file
-            for(String lines :  Files.readAllLines(Path.of(ENVPATH))) {
+            for (String lines : Files.readAllLines(Path.of(ENVPATH))) {
                 int equals = lines.indexOf("=");
                 String key = lines.substring(0, equals);
                 String value = lines.substring(equals + 1);
@@ -42,8 +42,8 @@ public class DbConnection {
             DB_PASSWORD = values.get("DB_PASSWORD");
         } catch (IOException e) {
             System.err.println(".env not found, falling back to system environment");
-		}
-	}
+        }
+    }
 
     /**
      * Connect to the database. Use the method readDotEnv() to get authentication arguments.

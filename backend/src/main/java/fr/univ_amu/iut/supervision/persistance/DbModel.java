@@ -51,8 +51,8 @@ public class DbModel {
      */
     public boolean userExist(String id) throws SQLException {
         try (Connection conn = dbConnection.connect()) {
-            PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT idUtilisateur FROM Utilisateur WHERE idUtilisateur = ?;");
+            PreparedStatement stmt =
+                    conn.prepareStatement("SELECT idUtilisateur FROM Utilisateur WHERE idUtilisateur = ?;");
             stmt.setString(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -69,7 +69,7 @@ public class DbModel {
      * @param firstName His first name, alphanumerical string of maximum 50 characters.
      * @throws SQLException Throw a SLQException if an error occurs to the database.
      */
-    public void registerUser(String id,String lastName, String ScientistName, String firstName) throws SQLException {
+    public void registerUser(String id, String lastName, String ScientistName, String firstName) throws SQLException {
         try (Connection conn = dbConnection.connect()) {
             PreparedStatement stmt = conn.prepareStatement(
                     "REPLACE INTO Utilisateur (idUtilisateur, nomUtilisateur, nomChercheur, prenomChercheur) VALUES (?,?,?,?)");
