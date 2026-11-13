@@ -1,8 +1,7 @@
-import { useState } from "react";
+import {useState} from "react";
 import "./login.css";
 
 const TOKEN_LENGTH = 32;
-
 // Chemin relais : en développement, Vite le redirige vers https://vigiechiro.herokuapp.com
 // (voir vite.config.js). Évite un éventuel blocage CORS du navigateur.
 const API_VIGIECHIRO = "/vigiechiro";
@@ -38,6 +37,27 @@ async function recupererProfil(token) {
 }
 
 /**
+ * Envoie le résultat du profil sous forme d'un json au serveur Javalin (back-end).
+ * @param event
+ * @param profil Le Profil de l'utilisateur (JSON), obtenu via la fonction recupererProfil().
+ * @returns {Promise<void>}
+ */
+async function envoieProfilBackend(event,profil){
+  // Not sure why it is necessary
+  event.preventDefault()
+  try {
+    const res = await fetch('/api/sentProfil', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profil),
+    })
+  }
+  catch (err) {
+    console.log('Error: ' + err.message)
+  }
+}
+
+/**
  * @param onLogin appelé avec { profil, token } quand Vigie-Chiro a accepté le token.
  *                C'est au composant parent de ranger ces données et de changer d'écran.
  */
@@ -53,8 +73,8 @@ function Login({ onLogin = () => {} }) {
         // Un copier-coller peut embarquer des espaces autour du token.
         const tokenNettoye = token.trim();
         if (tokenNettoye.length !== TOKEN_LENGTH) {
-            setErreur(`Le token fait ${TOKEN_LENGTH} caractères (${tokenNettoye.length} saisis).`);
-            return;
+          setErreur(`Le token fait ${TOKEN_LENGTH} caractères (${tokenNettoye.length} saisis).`);
+          return;
         }
 
         setEnCours(true);
@@ -66,8 +86,8 @@ function Login({ onLogin = () => {} }) {
             profil.pseudo = raw_profil.pseudo;
             profil.email = raw_profil.email;
             console.log(profil);
+            await envoieProfilBackend(event, profil);
             onLogin({ profil, token: tokenNettoye });
-
         } catch (e) {
             if (e.status === 401 || e.status === 403) {
                 setErreur("Token refusé. Vérifiez qu'il est complet, ou récupérez-en un nouveau. "+ e);
@@ -81,66 +101,66 @@ function Login({ onLogin = () => {} }) {
 
     return (
         <main className="conteneur-login">
-            <form className="login-card" onSubmit={handleSubmit}>
-                <h1>Supervision Passive Recorder</h1>
-                <label htmlFor="token">Token ({TOKEN_LENGTH} caractères)</label>
-                <input
-                    id="token"
-                    type="password"
-                    autoComplete="off"
-                    maxLength={32}
-                    placeholder="••••••••••••••••••••••••••••••••••••••••"
-                    value={token}
-                    onChange={(event) => setToken(event.target.value)}
-                />
+          <form className="login-card" onSubmit={handleSubmit}>
+              <h1>Supervision Passive Recorder</h1>
+              <label htmlFor="token">Token ({TOKEN_LENGTH} caractères)</label>
+              <input
+                  id="token"
+                  type="password"
+                  autoComplete="off"
+                  maxLength={32}
+                  placeholder="••••••••••••••••••••••••••••••••••••••••"
+                  value={token}
+                  onChange={(event) => setToken(event.target.value)}
+              />
 
-                {erreur && (
-                    <p role="alert" className="login-erreur">
-                        {erreur}
-                    </p>
-                )}
+              {erreur && (
+                  <p role="alert" className="login-erreur">
+                      {erreur}
+                  </p>
+              )}
 
-                <button type="submit" disabled={enCours}>
-                    {enCours ? "Connexion…" : "Login"}
-                </button>
-                <button type="button" className="token-link" onClick={() => setIsTutorialOpen(true)}>
-                    Obtenir Token
-                </button>
-            </form>
+              <button type="submit" disabled={enCours}>
+                  {enCours ? "Connexion…" : "Login"}
+              </button>
+              <button type="button" className="token-link" onClick={() => setIsTutorialOpen(true)}>
+                  Obtenir Token
+              </button>
+          </form>
 
-            {isTutorialOpen && (
-                <div className="tutorial-overlay" onClick={() => setIsTutorialOpen(false)}>
-                    <div
-                        className="tutorial-modal"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="tutorial-title"
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <button
-                            type="button"
-                            className="tutorial-close"
-                            onClick={() => setIsTutorialOpen(false)}
-                            aria-label="Fermer"
-                        >
-                            X
-                        </button>
+          {isTutorialOpen && (
+              <div className="tutorial-overlay" onClick={() => setIsTutorialOpen(false)}>
+                  <div
+                      className="tutorial-modal"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-labelledby="tutorial-title"
+                      onClick={(event) => event.stopPropagation()}
+                  >
+                      <button
+                          type="button"
+                          className="tutorial-close"
+                          onClick={() => setIsTutorialOpen(false)}
+                          aria-label="Fermer"
+                      >
+                          X
+                      </button>
 
-                        <h2 id="tutorial-title" className="tutorial-title">
-                            Supervision Passive Recorder
-                        </h2>
-                        <p className="tutorial-intro">Reliez l'application à votre compte Vigie-chiro en quatre étapes :</p>
-                        <p>1- Connectez-vous sur vigiechiro.herokuapp.com/</p>
-                        <p>2- Créez un favori et mettez ce code JavaScript dans l'URL du favori.</p>
-                        <pre className="tutorial-code">
-              <code>{BOOKMARKLET_CODE}</code>
-            </pre>
-                        <p>3- Cliquez sur le favori : le token est copié dans votre presse-papiers.</p>
-                        <p>4- Collez le token dans le champ « Token ({TOKEN_LENGTH} caractères) ».</p>
-                    </div>
-                </div>
-            )}
-        </main>
+                      <h2 id="tutorial-title" className="tutorial-title">
+                          Supervision Passive Recorder
+                      </h2>
+                      <p className="tutorial-intro">Reliez l'application à votre compte Vigie-chiro en quatre étapes :</p>
+                      <p>1- Connectez-vous sur vigiechiro.herokuapp.com/</p>
+                      <p>2- Créez un favori et mettez ce code JavaScript dans l'URL du favori.</p>
+                      <pre className="tutorial-code">
+            <code>{BOOKMARKLET_CODE}</code>
+          </pre>
+                      <p>3- Cliquez sur le favori : le token est copié dans votre presse-papiers.</p>
+                      <p>4- Collez le token dans le champ « Token ({TOKEN_LENGTH} caractères) ».</p>
+                  </div>
+              </div>
+          )}
+      </main>
     );
 }
 
