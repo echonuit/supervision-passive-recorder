@@ -47,6 +47,7 @@ public final class ServeurWeb {
 
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
+
                 ctx.sessionAttribute("UserId", profil._id());
                 ctx.sessionAttribute("UserEmail", profil.email());
                 ctx.sessionAttribute("UserPseudo", profil.pseudo());
@@ -93,6 +94,19 @@ public final class ServeurWeb {
                 ctx.status(201).json(Map.of("id", id));
             });
 
+            // Route ajoutée pour modifier un capteur (Résout l'erreur 404)
+            config.routes.put("/api/sensors/{id}", ctx -> {
+                try {
+                    int idCapteur = Integer.parseInt(ctx.pathParam("id"));
+                    NewSensor sensorData = ctx.bodyAsClass(NewSensor.class);
+                    
+                    dbModel.updateSensor(idCapteur, sensorData.sensorName(), sensorData.longitude(), sensorData.latitude());
+                    ctx.status(200).json(Map.of("success", true));
+                } catch (Exception e) {
+                    ctx.status(500).json(Map.of("error", e.getMessage()));
+                }
+            });
+
             config.routes.get("/api/table/sensors", ctx -> {
                 String userId = ctx.sessionAttribute("UserId");
                 if (userId == null) {
@@ -107,10 +121,18 @@ public final class ServeurWeb {
             });
 
             config.routes.post("/api/groups", ctx -> {
-                Map<String, String> body = ctx.bodyAsClass(Map.class);
-                String name = body.get("name");
+                Map body = ctx.bodyAsClass(Map.class);
+                String name = (String) body.get("name");
                 int id = sensorService.createGroup(name);
                 ctx.status(201).json(Map.of("id", id));
+            });
+
+            config.routes.get("/api/groups", ctx -> {
+                try {
+                    ctx.json(dbModel.getAllGroups());
+                } catch (Exception e) {
+                    ctx.status(500).json(Map.of("error", e.getMessage()));
+                }
             });
         });
 
