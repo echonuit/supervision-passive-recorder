@@ -5,12 +5,14 @@ import java.util.Map;
 
 public class SensorRoutes {
 
+    private static final String ERROR_KEY = "error";
+
     public static void register(JavalinConfig config, SensorService service) {
 
         config.routes.post("/api/sensors", ctx -> {
             String userId = ctx.sessionAttribute("UserId");
             if (userId == null) {
-                ctx.status(401).json(Map.of("error", "Utilisateur non authentifié"));
+                ctx.status(401).json(Map.of(ERROR_KEY, "Utilisateur non authentifié"));
                 return;
             }
             NewSensor sensor = ctx.bodyAsClass(NewSensor.class);
@@ -25,10 +27,10 @@ public class SensorRoutes {
         });
 
         config.routes.exception(
-                IllegalArgumentException.class, (e, ctx) -> ctx.status(400).json(Map.of("error", e.getMessage())));
+                IllegalArgumentException.class, (e, ctx) -> ctx.status(400).json(Map.of(ERROR_KEY, e.getMessage())));
         config.routes.exception(
-                DuplicateSensorException.class, (e, ctx) -> ctx.status(409).json(Map.of("error", e.getMessage())));
+                DuplicateSensorException.class, (e, ctx) -> ctx.status(409).json(Map.of(ERROR_KEY, e.getMessage())));
         config.routes.exception(
-                GroupNotFoundException.class, (e, ctx) -> ctx.status(404).json(Map.of("error", e.getMessage())));
+                GroupNotFoundException.class, (e, ctx) -> ctx.status(404).json(Map.of(ERROR_KEY, e.getMessage())));
     }
 }

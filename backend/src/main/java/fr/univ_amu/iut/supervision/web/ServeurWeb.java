@@ -10,14 +10,16 @@ import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
-import org.eclipse.jetty.ee10.servlet.SessionHandler;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
 public final class ServeurWeb {
     private static final int sessionIdleTimeOut = -1;
+    private static final String SESSION_USER_ID = "UserId";
+    private static final String ERROR_KEY = "error";
+    private static final String MSG_NON_AUTHENTIFIE = "Utilisateur non authentifié";
 
     private ServeurWeb() {}
 
@@ -31,7 +33,8 @@ public final class ServeurWeb {
         return sessionHandler;
     }
 
-    public static Javalin creer(DataBase base, DbModel dbModel, SensorService sensorService, TableService tableService) {
+    public static Javalin creer(
+            DataBase base, DbModel dbModel, SensorService sensorService, TableService tableService) {
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
@@ -48,7 +51,7 @@ public final class ServeurWeb {
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
 
-                ctx.sessionAttribute("UserId", profil._id());
+                ctx.sessionAttribute(SESSION_USER_ID, profil._id());
                 ctx.sessionAttribute("UserEmail", profil.email());
                 ctx.sessionAttribute("UserPseudo", profil.pseudo());
                 if (!dbModel.userExist(profil._id())) {
@@ -57,7 +60,7 @@ public final class ServeurWeb {
             });
 
             config.routes.get("/api/getSessionAttributes", ctx -> {
-                String id = ctx.sessionAttribute("UserId");
+                String id = ctx.sessionAttribute(SESSION_USER_ID);
                 String email = ctx.sessionAttribute("UserEmail");
                 String pseudo = ctx.sessionAttribute("UserPseudo");
                 if (id != null && email != null && pseudo != null) {
@@ -70,23 +73,24 @@ public final class ServeurWeb {
             });
 
             config.routes.get("/api/delete-users", ctx -> {
-                if (ctx.sessionAttribute("UserId") != null) {
-                    dbModel.deleteUser(ctx.sessionAttribute("UserId"));
+                String id = ctx.sessionAttribute(SESSION_USER_ID);
+                if (id != null) {
+                    dbModel.deleteUser(id);
                     ctx.req().getSession().invalidate();
                 }
             });
 
             config.routes.get("/api/checkUser", ctx -> {
-                String id = ctx.sessionAttribute("UserId");
+                String id = ctx.sessionAttribute(SESSION_USER_ID);
                 if (id != null) {
                     System.out.println("Does user (" + id + ") exist ? : " + dbModel.userExist(id));
                 }
             });
 
             config.routes.post("/api/sensors", ctx -> {
-                String userId = ctx.sessionAttribute("UserId");
+                String userId = ctx.sessionAttribute(SESSION_USER_ID);
                 if (userId == null) {
-                    ctx.status(401).json(Map.of("error", "Utilisateur non authentifié"));
+                    ctx.status(401).json(Map.of(ERROR_KEY, MSG_NON_AUTHENTIFIE));
                     return;
                 }
                 NewSensor newSensor = ctx.bodyAsClass(NewSensor.class);
@@ -99,29 +103,30 @@ public final class ServeurWeb {
                 try {
                     int idCapteur = Integer.parseInt(ctx.pathParam("id"));
                     NewSensor sensorData = ctx.bodyAsClass(NewSensor.class);
-                    
-                    dbModel.updateSensor(idCapteur, sensorData.sensorName(), sensorData.longitude(), sensorData.latitude());
+
+                    dbModel.updateSensor(
+                            idCapteur, sensorData.sensorName(), sensorData.longitude(), sensorData.latitude());
                     ctx.status(200).json(Map.of("success", true));
                 } catch (Exception e) {
-                    ctx.status(500).json(Map.of("error", e.getMessage()));
+                    ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
                 }
             });
 
             config.routes.get("/api/table/sensors", ctx -> {
-                String userId = ctx.sessionAttribute("UserId");
+                String userId = ctx.sessionAttribute(SESSION_USER_ID);
                 if (userId == null) {
-                    ctx.status(401).json(Map.of("error", "Utilisateur non authentifié"));
+                    ctx.status(401).json(Map.of(ERROR_KEY, MSG_NON_AUTHENTIFIE));
                     return;
                 }
                 try {
                     ctx.json(tableService.getDashboardSensors(userId));
                 } catch (Exception e) {
-                    ctx.status(500).json(Map.of("error", e.getMessage()));
+                    ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
                 }
             });
 
             config.routes.post("/api/groups", ctx -> {
-                Map body = ctx.bodyAsClass(Map.class);
+                Map<?, ?> body = ctx.bodyAsClass(Map.class);
                 String name = (String) body.get("name");
                 int id = sensorService.createGroup(name);
                 ctx.status(201).json(Map.of("id", id));
@@ -131,7 +136,7 @@ public final class ServeurWeb {
                 try {
                     ctx.json(dbModel.getAllGroups());
                 } catch (Exception e) {
-                    ctx.status(500).json(Map.of("error", e.getMessage()));
+                    ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
                 }
             });
         });

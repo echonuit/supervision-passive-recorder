@@ -19,12 +19,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <dependency>
-    <groupId>org.mariadb.jdbc</groupId>
-    <artifactId>mariadb-java-client</artifactId>
-    <version>3.5.1</version> <!-- ou version adaptée -->
-    </dependency>
-
     <!-- HTTP et rendu -->
     <dependency>
       <groupId>io.javalin</groupId>
@@ -62,7 +56,7 @@
       <artifactId>mongodb-driver-sync</artifactId>
       <version>${mongodb.version}</version>
     </dependency>
-    <!--      Dependencies for connection to the mariadb database-->
+    <!-- Connexion à la base MariaDB -->
     <dependency>
       <groupId>org.mariadb.jdbc</groupId>
       <artifactId>mariadb-java-client</artifactId>
@@ -105,6 +99,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.20.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
@@ -123,7 +123,7 @@
 
   <build>
     <plugins>
-      <!-- Run the backend in dev with: mvn compile exec:java -->
+      <!-- Run the backend in dev with: mvn compile exec:exec -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -142,14 +142,15 @@
           </arguments>
         </configuration>
       </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-                <source>8</source>
-                <target>8</target>
-            </configuration>
-        </plugin>
+
+      <!-- Permet à Mockito/ByteBuddy de tourner sur un JDK très récent (Java 25) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

@@ -3,7 +3,6 @@ package fr.univ_amu.iut.supervision.web;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.univ_amu.iut.supervision.persistance.DataBase;
-import fr.univ_amu.iut.supervision.persistance.DbModel;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,7 @@ class ServeurWebTest {
 
     @Test
     void laRouteDeSanteRepond() {
-        Javalin app = ServeurWeb.creer(null, null, null);
+        Javalin app = ServeurWeb.creer(null, null, null, null);
         JavalinTest.test(app, (serveur, client) -> {
             var reponse = client.get("/sante");
             assertThat(reponse.code()).isEqualTo(200);
@@ -29,7 +28,7 @@ class ServeurWebTest {
 
     @Test
     void laRouteDeSanteDitLaBaseAbsenteQuandIlNyEnAPas() {
-        Javalin app = ServeurWeb.creer(null, null, null);
+        Javalin app = ServeurWeb.creer(null, null, null, null);
         JavalinTest.test(app, (serveur, client) -> {
             assertThat(client.get("/sante").body().string()).contains("absente");
         });
@@ -37,10 +36,9 @@ class ServeurWebTest {
 
     @Test
     void laRouteDeSanteDitLaBaseJoignableQuandElleLest() {
-//        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
-        DbModel base = new DbModel();
+        DataBase base = DataBase.connect(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
 
-        Javalin app = ServeurWeb.creer(base, null, null);
+        Javalin app = ServeurWeb.creer(base, null, null, null);
         JavalinTest.test(app, (serveur, client) -> {
             assertThat(client.get("/sante").body().string()).contains("joignable");
         });
@@ -48,7 +46,7 @@ class ServeurWebTest {
 
     @Test
     void laPageDAccueilSeRend() {
-        Javalin app = ServeurWeb.creer(null, null, null);
+        Javalin app = ServeurWeb.creer(null, null, null, null);
         JavalinTest.test(app, (serveur, client) -> {
             var reponse = client.get("/");
             assertThat(reponse.code()).isEqualTo(200);

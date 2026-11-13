@@ -14,8 +14,8 @@ public class LoginService {
      * @deprecated Because this check is already made in the React section of the code.
      */
     public boolean checkVigieToken(String token) {
-        // return true of the string contains : letter from 'a' to 'z' and 'A' to 'Z', number from 0 to 9, and continue for 32 characters.
+        // return true of the string contains : letter from 'a' to 'z' and 'A' to 'Z', number from 0 to 9, and continue
+        // for 32 characters.
         return token.matches(String.format("[a-zA-Z0-9]{%s}", MAX_LENGTH_VIGIETOKEN));
     }
-
 }

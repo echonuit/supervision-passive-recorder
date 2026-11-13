@@ -1,16 +1,15 @@
 package fr.univ_amu.iut.supervision.web.table;
 
-import fr.univ_amu.iut.supervision.persistance.DbModel;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+import fr.univ_amu.iut.supervision.persistance.DbModel;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 class TableServiceTest {
 
@@ -26,9 +25,8 @@ class TableServiceTest {
     @Test
     void testGetDashboardSensorsSuccess() throws SQLException {
         String userId = "user123";
-        List<Map<String, Object>> mockSensors = List.of(
-            Map.of("id", 1, "name", "Capteur A", "battery", 85, "storage", 40, "status", "Stable")
-        );
+        List<Map<String, Object>> mockSensors =
+                List.of(Map.of("id", 1, "name", "Capteur A", "battery", 85, "storage", 40, "status", "Stable"));
 
         when(dbModelMock.getSensorsForTable(userId)).thenReturn(mockSensors);
 
