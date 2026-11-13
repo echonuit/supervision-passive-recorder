@@ -117,7 +117,8 @@ public final class ServeurWeb {
                 try {
                     int idCapteur = Integer.parseInt(ctx.pathParam("id"));
                     NewSensor sensorData = ctx.bodyAsClass(NewSensor.class);
-                    dbModel.updateSensor(idCapteur, sensorData.sensorName(), sensorData.longitude(), sensorData.latitude());
+                    dbModel.updateSensor(
+                            idCapteur, sensorData.sensorName(), sensorData.longitude(), sensorData.latitude());
                     ctx.status(200).json(Map.of("success", true));
                 } catch (Exception e) {
                     ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));

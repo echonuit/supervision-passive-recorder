@@ -13,50 +13,60 @@ import java.util.Map;
  * Class used to connect to the database, use a .env file.
  */
 public class DbConnection {
-    private static final String ENVPATH = ".env";
-    
-    private static String DB_HOSTNAME = System.getenv("DB_HOSTNAME");
-    private static String DB_NAME = System.getenv("DB_NAME");
-    private static String DB_USER = System.getenv("DB_USER");
-    private static String DB_PASSWORD = System.getenv("DB_PASSWORD");
+    private final String ENVPATH = ".env";
 
-    private static Map<String, String> values = new HashMap<>();
+    private String DB_HOSTNAME = System.getenv("DB_HOSTNAME");
+    private String DB_NAME = System.getenv("DB_NAME");
+    private String DB_USER = System.getenv("DB_USER");
+    private String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
-    /**
-     * Read the .env file and write in the class attributes "values" the values
-     * of the parameter, and write them in their respective class attributes.
-     */
-    public static void readDotEnv() {
+    private static final Map<String, String> VALUES = new HashMap<>();
+
+    private void parseLine(String line) {
+        int equals = line.indexOf("=");
+        if (equals != -1) {
+            String key = line.substring(0, equals).trim();
+            String value = line.substring(equals + 1).trim();
+            VALUES.put(key, value);
+        }
+    }
+
+    private void updateConfigFromValues() {
+        if (VALUES.containsKey("DB_HOSTNAME")) {
+            DB_HOSTNAME = VALUES.get("DB_HOSTNAME");
+        }
+        if (VALUES.containsKey("DB_NAME")) {
+            DB_NAME = VALUES.get("DB_NAME");
+        }
+        if (VALUES.containsKey("DB_USER")) {
+            DB_USER = VALUES.get("DB_USER");
+        }
+        if (VALUES.containsKey("DB_PASSWORD")) {
+            DB_PASSWORD = VALUES.get("DB_PASSWORD");
+        }
+    }
+
+    public void readDotEnv() {
         try {
             for (String lines : Files.readAllLines(Path.of(ENVPATH))) {
-                int equals = lines.indexOf("=");
-                if (equals != -1) {
-                    String key = lines.substring(0, equals).trim();
-                    String value = lines.substring(equals + 1).trim();
-
-                    values.put(key, value);
-                }
+                parseLine(lines);
             }
-            if (values.containsKey("DB_HOSTNAME")) DB_HOSTNAME = values.get("DB_HOSTNAME");
-            if (values.containsKey("DB_NAME")) DB_NAME = values.get("DB_NAME");
-            if (values.containsKey("DB_USER")) DB_USER = values.get("DB_USER");
-            if (values.containsKey("DB_PASSWORD")) DB_PASSWORD = values.get("DB_PASSWORD");
+            updateConfigFromValues();
         } catch (IOException e) {
             System.err.println(".env not found, falling back to system environment");
         }
     }
 
-    /**
-     * Connect to the database. Use the method readDotEnv() to get authentication arguments.
-     * @return A Java.sql.Connection object, represent the connection to the database.
-     * @throws SQLException Throw an exception if the connection failed.
-     */
-    public static Connection connect() throws SQLException {
+    private void loadDriver() throws SQLException {
         try {
             Class.forName("org.mariadb.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             throw new SQLException("Pilote JDBC MariaDB introuvable", e);
         }
+    }
+
+    public Connection connect() throws SQLException {
+        loadDriver();
 
         if (DB_HOSTNAME == null) {
             readDotEnv();
@@ -66,16 +76,8 @@ public class DbConnection {
         return DriverManager.getConnection(url, DB_USER, DB_PASSWORD);
     }
 
-    /**
-     * Connect to the database with custom parameters.
-     * @param dbHostname The name of the host.
-     * @param dbName The name of the database.
-     * @param dbUser The name of the user.
-     * @param dbPassword The password of the user.
-     * @return A Java.sql.Connection object, represent the connection to the database.
-     * @throws SQLException Throw an exception if the connection failed.
-     */
     public Connection connect(String dbHostname, String dbName, String dbUser, String dbPassword) throws SQLException {
+        loadDriver();
         String url = "jdbc:mariadb://" + dbHostname + "/" + dbName;
         return DriverManager.getConnection(url, dbUser, dbPassword);
     }
