@@ -2,7 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>fr.univ_amu.iut</groupId>
         <artifactId>supervision-pr</artifactId>
@@ -56,12 +58,15 @@
             <artifactId>mongodb-driver-sync</artifactId>
             <version>${mongodb.version}</version>
         </dependency>
-        <!-- Dependencies for connection to the MySQL database -->
+        
+        <!-- MySQL Connecteur pour Alwaysdata -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <version>9.1.0</version>
         </dependency>
+        
+        <!-- Variables d'environnement -->
         <dependency>
             <groupId>io.github.cdimascio</groupId>
             <artifactId>dotenv-java</artifactId>
@@ -86,25 +91,28 @@
             <artifactId>slf4j-simple</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>6.2.1</version>
+        </dependency>
+
         <!-- Tests -->
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>mariadb</artifactId>
-            <version>1.20.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>3.5.1</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin-testtools</artifactId>
             <version>${javalin.version}</version>
             <scope>test</scope>
         </dependency>
+        
+        <!-- Mockito ajouté par l'équipe sur main -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.24.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-junit-jupiter</artifactId>
@@ -120,6 +128,8 @@
             <artifactId>testcontainers-mongodb</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <!-- MariaDB Testcontainers pour le DbModelTest (Ta branche) -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>mariadb</artifactId>
@@ -127,15 +137,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>5.24.0</version>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.5.1</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>6.2.1</version>
         </dependency>
     </dependencies>
 
@@ -161,7 +166,16 @@
                 </configuration>
             </plugin>
 
-            <!-- Génère un Fat JAR autonome avec toutes les dépendances pour Alwaysdata -->
+            <!-- Plugin ajouté par l'équipe sur main pour faire marcher Mockito sous Java 21 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+                </configuration>
+            </plugin>
+
+            <!-- Génère un Fat JAR autonome avec toutes les dépendances pour Alwaysdata (Ta branche) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

@@ -1,6 +1,7 @@
 package fr.univ_amu.iut.supervision.web;
 
 import fr.univ_amu.iut.supervision.persistance.DbModel;
+import fr.univ_amu.iut.supervision.web.sensor.NewSensor;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
@@ -11,88 +12,64 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
-/** Construction de l'application Javalin : routes, rendu, et rien d'autre. */
 public final class ServeurWeb {
-    /** Idle timeout (in second) of a session. For no timeout use the value -1.*/
     private static final int sessionIdleTimeOut = -1;
+    private static final String SESSION_USER_ID_KEY = "UserId";
+    private static final String SESSION_EMAIL_KEY = "UserEmail";
+    private static final String SESSION_PSEUDO_KEY = "UserPseudo";
+    private static final String ERROR_KEY = "error";
+    private static final String MSG_NON_AUTHENTIFIE = "Utilisateur non authentifié";
 
     private ServeurWeb() {}
 
-    /**
-     * A record for processing the data of the user profile.
-     * @param _id
-     * @param pseudo
-     * @param email
-     */
     record Profil(String _id, String email, String pseudo) {}
 
-    private static final String SESSION_USER_ID_KEY = "UserId";
-    private static final String SESSION_PSEUDO_KEY = "UserPseudo";
-    private static final String SESSION_EMAIL_KEY = "UserEmail";
-
-    public String getSessionUserIdKey() {
+    public static String getSessionUserIdKey() {
         return SESSION_USER_ID_KEY;
     }
 
-    public String getSessionPseudoKey() {
+    public static String getSessionPseudoKey() {
         return SESSION_PSEUDO_KEY;
     }
 
-    public String getSESSION_EMAIL_KEY() {
+    public static String getSESSION_EMAIL_KEY() {
         return SESSION_EMAIL_KEY;
     }
 
-    /**
-     * Create and configure a session handler.
-     * @return An object of class SessionHandler
-     */
     public static SessionHandler createSessionHandler() {
         SessionHandler sessionHandler = new SessionHandler();
-        /*  <--- SESSION HANDLER OPTION / SETTING --->  */
-        // HTTPS only (disable for local http dev) ; TODO : set to TRUE before release
         sessionHandler.setSecureRequestOnly(false);
-        // If set to true, the session cookie will not be exposed to client-side scripting code.
         sessionHandler.setHttpOnly(true);
-        // idle timeout (in second), default -1
         sessionHandler.setMaxInactiveInterval(sessionIdleTimeOut);
         return sessionHandler;
     }
 
-    public static Javalin creer(DbModel base) {
+    public static Javalin creer(DbModel dbModel) {
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
-        // Depuis Javalin 7, les routes se déclarent dans la configuration.
         var app = Javalin.create(config -> {
-            // create a session handler
             config.jetty.modifyServletContextHandler(handler -> handler.setSessionHandler(createSessionHandler()));
-
-            // Since the front-end use React+vite, these line may become useless
             config.fileRenderer(new JavalinJte(moteur));
+
             config.routes.get("/", ctx -> ctx.render("index.jte"));
 
-            // Get all the users id and last name in a JSON
             config.routes.get("/api/users", ctx -> {
-                System.out.println(base.getAllUsers());
-                ctx.json(base.getAllUsers());
+                ctx.json(dbModel.getAllUsers());
                 ctx.status(200);
             });
-            // Receive the profil of the user that was obtained by using his vigiechiro token.
-            // Write the element of the profil in session var.
-            // Register the user in the database if not the case.
+
             config.routes.post("/api/sentProfil", ctx -> {
                 Profil profil = ctx.bodyAsClass(Profil.class);
-                // Write the attribute of the user in the session
                 ctx.sessionAttribute(SESSION_USER_ID_KEY, profil._id());
                 ctx.sessionAttribute(SESSION_EMAIL_KEY, profil.email());
-                if (!base.userExist(profil._id)) {
-                    System.out.println("LOG : Creating entry in the database for user " + profil._id);
-                    base.registerUser(profil._id, profil.pseudo, profil.pseudo, profil.pseudo());
+                ctx.sessionAttribute(SESSION_PSEUDO_KEY, profil.pseudo());
+                if (!dbModel.userExist(profil._id())) {
+                    dbModel.registerUser(profil._id(), profil.pseudo(), profil.pseudo(), profil.pseudo());
                 }
-                System.out.println("The session now these attributes : " + profil);
                 ctx.status(201);
             });
-            // Send to the front-end server, the attribute of the Session
+
             config.routes.get("/api/getSessionAttributes", ctx -> {
                 String id = ctx.sessionAttribute(SESSION_USER_ID_KEY);
                 String email = ctx.sessionAttribute(SESSION_EMAIL_KEY);
@@ -102,36 +79,84 @@ public final class ServeurWeb {
                     ctx.status(200);
                 }
             });
+
             config.routes.get("/api/disconnect", ctx -> {
-                // should destroy the session of the user
-                System.out.println("LOG : End of the session for user " + ctx.sessionAttribute("UserId"));
                 ctx.req().getSession().invalidate();
-                // Check if this is correct
                 ctx.status(200);
             });
-            // Delete the user of the session from the database
+
             config.routes.post("/api/delete/user", ctx -> {
-                if (ctx.sessionAttribute(SESSION_USER_ID_KEY) != null) {
-                    base.deleteUser(ctx.sessionAttribute(SESSION_USER_ID_KEY));
+                String id = ctx.sessionAttribute(SESSION_USER_ID_KEY);
+                if (id != null) {
+                    dbModel.deleteUser(id);
                     ctx.req().getSession().invalidate();
                 }
                 ctx.status(200);
             });
-            // Check if a user already exist in the database, print the result.
+
             config.routes.get("/api/checkUser", ctx -> {
                 String id = ctx.sessionAttribute(SESSION_USER_ID_KEY);
                 if (id != null) {
-                    System.out.println("Does user (" + id + ") exist ? : " + base.userExist(id));
-                } else {
-                    System.out.println("WARNING : the user id is null");
+                    dbModel.userExist(id);
                 }
                 ctx.status(200);
             });
+
+            config.routes.post("/api/sensors", ctx -> {
+                String userId = ctx.sessionAttribute(SESSION_USER_ID_KEY);
+                if (userId == null) {
+                    ctx.status(401).json(Map.of(ERROR_KEY, MSG_NON_AUTHENTIFIE));
+                    return;
+                }
+                NewSensor newSensor = ctx.bodyAsClass(NewSensor.class);
+                int id = dbModel.addSensor(newSensor, userId);
+                ctx.status(201).json(Map.of("id", id));
+            });
+
+            config.routes.put("/api/sensors/{id}", ctx -> {
+                try {
+                    int idCapteur = Integer.parseInt(ctx.pathParam("id"));
+                    NewSensor sensorData = ctx.bodyAsClass(NewSensor.class);
+                    dbModel.updateSensor(
+                            idCapteur, sensorData.sensorName(), sensorData.longitude(), sensorData.latitude());
+                    ctx.status(200).json(Map.of("success", true));
+                } catch (Exception e) {
+                    ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
+                }
+            });
+
+            config.routes.get("/api/table/sensors", ctx -> {
+                String userId = ctx.sessionAttribute(SESSION_USER_ID_KEY);
+                if (userId == null) {
+                    ctx.status(401).json(Map.of(ERROR_KEY, MSG_NON_AUTHENTIFIE));
+                    return;
+                }
+                try {
+                    ctx.json(dbModel.getSensorsForTable(userId));
+                } catch (Exception e) {
+                    ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
+                }
+            });
+
+            config.routes.post("/api/groups", ctx -> {
+                Map<?, ?> body = ctx.bodyAsClass(Map.class);
+                String name = (String) body.get("name");
+                int id = dbModel.createGroup(name);
+                ctx.status(201).json(Map.of("id", id));
+            });
+
+            config.routes.get("/api/groups", ctx -> {
+                try {
+                    ctx.json(dbModel.getAllGroups());
+                } catch (Exception e) {
+                    ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
+                }
+            });
         });
+
         return app;
     }
 
-    /** Permet de lancer depuis la racine du dépôt ou depuis backend/. */
     private static Path dossierDesGabarits() {
         Path local = Path.of("src", "main", "jte");
         return Files.isDirectory(local) ? local : Path.of("backend", "src", "main", "jte");

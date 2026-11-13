@@ -14,59 +14,73 @@ import java.util.Map;
  */
 public class DbConnection {
     private final String ENVPATH = ".env";
-    // We default to system env variable
+
     private String DB_HOSTNAME = System.getenv("DB_HOSTNAME");
     private String DB_NAME = System.getenv("DB_NAME");
     private String DB_USER = System.getenv("DB_USER");
     private String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
-    private static Map<String, String> values = new HashMap<>();
+    private static final Map<String, String> VALUES = new HashMap<>();
 
-    /**
-     * Read the .env file and write in the class attributes "values" the values
-     * of the parameter, and write them in their respective class attributes.
-     */
+    private void parseLine(String line) {
+        int equals = line.indexOf("=");
+        if (equals != -1) {
+            String key = line.substring(0, equals).trim();
+            String value = line.substring(equals + 1).trim();
+            VALUES.put(key, value);
+        }
+    }
+
+    private void updateConfigFromValues() {
+        if (VALUES.containsKey("DB_HOSTNAME")) {
+            DB_HOSTNAME = VALUES.get("DB_HOSTNAME");
+        }
+        if (VALUES.containsKey("DB_NAME")) {
+            DB_NAME = VALUES.get("DB_NAME");
+        }
+        if (VALUES.containsKey("DB_USER")) {
+            DB_USER = VALUES.get("DB_USER");
+        }
+        if (VALUES.containsKey("DB_PASSWORD")) {
+            DB_PASSWORD = VALUES.get("DB_PASSWORD");
+        }
+    }
+
     public void readDotEnv() {
         try {
-            // Read all the line of the .env file
             for (String lines : Files.readAllLines(Path.of(ENVPATH))) {
-                int equals = lines.indexOf("=");
-                String key = lines.substring(0, equals);
-                String value = lines.substring(equals + 1);
-
-                values.put(key, value);
+                parseLine(lines);
             }
-            DB_HOSTNAME = values.get("DB_HOSTNAME");
-            DB_NAME = values.get("DB_NAME");
-            DB_USER = values.get("DB_USER");
-            DB_PASSWORD = values.get("DB_PASSWORD");
+            updateConfigFromValues();
         } catch (IOException e) {
             System.err.println(".env not found, falling back to system environment");
         }
     }
 
-    /**
-     * Connect to the database. Use the method readDotEnv() to get authentication arguments.
-     * @return A Java.sql.Connection object, represent the connection to the database.
-     * @throws SQLException Throw an exception if the connection failed.
-     */
+    private void loadDriver() throws SQLException {
+        try {
+            // Keep the MySQL driver for Alwaysdata
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("Pilote JDBC MySQL introuvable", e);
+        }
+    }
+
     public Connection connect() throws SQLException {
-        readDotEnv();
+        loadDriver();
+
+        if (DB_HOSTNAME == null) {
+            readDotEnv();
+        }
+
+        // Keep the MySQL protocol for Alwaysdata
         String url = "jdbc:mysql://" + DB_HOSTNAME + "/" + DB_NAME;
         return DriverManager.getConnection(url, DB_USER, DB_PASSWORD);
     }
 
-    // This function is used only for testing this class and DbModel.
-    /**
-     * Connect to the database.
-     * @param dbHostname The name of the host.
-     * @param dbName The name of the database.
-     * @param dbUser The name of the user.
-     * @param dbPassword The password of the user.
-     * @return A Java.sql.Connection object, represent the connection to the database.
-     * @throws SQLException Throw an exception if the connection failed.
-     */
     public Connection connect(String dbHostname, String dbName, String dbUser, String dbPassword) throws SQLException {
+        loadDriver();
+        // Keep the MySQL protocol for Alwaysdata
         String url = "jdbc:mysql://" + dbHostname + "/" + dbName;
         return DriverManager.getConnection(url, dbUser, dbPassword);
     }

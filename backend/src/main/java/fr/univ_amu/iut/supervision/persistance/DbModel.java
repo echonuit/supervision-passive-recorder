@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.supervision.persistance;
 
+import fr.univ_amu.iut.supervision.web.sensor.NewSensor;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,111 +10,293 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Class used to run SQL query and manipulate the database.
- */
 public class DbModel {
 
-    /**
-     * Class Attribute that represent the connection to the database
-     */
     private final DbConnection dbConnection;
 
-    /**
-     * Constructor for this class, create a DbConnection object automatically.
-     */
+    private static final String KEY_STATUS = "status";
+    private static final String KEY_ALERT = "alert";
+
     public DbModel() {
         this.dbConnection = new DbConnection();
     }
 
-    // Used for unit test
-    /**
-     * Constructor for this class, demand a DbConnection object.
-     * @param dbConnection A DbConnection object.
-     */
     public DbModel(DbConnection dbConnection) {
         this.dbConnection = dbConnection;
     }
 
-    /**
-     * Getter for the dbConnection class attribute.
-     * @return A dbConnection object.
-     */
     public DbConnection getDbConnection() {
         return dbConnection;
     }
 
-    /**
-     * Check if the user (identified by his id) exist in the database.
-     * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters.
-     * @return True of the user exist in the database, false otherwise.
-     * @throws SQLException Throw a SLQException if an error occurs to the database.
-     */
     public boolean userExist(String id) throws SQLException {
-        try (Connection conn = dbConnection.connect()) {
-            PreparedStatement stmt =
-                    conn.prepareStatement("SELECT idUtilisateur FROM Utilisateur WHERE idUtilisateur = ?;");
+        String sql = "SELECT idUtilisateur FROM Utilisateur WHERE idUtilisateur = ?";
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return true;
-            } else return false;
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
         }
     }
 
-    /**
-     * Register the user in the database.
-     * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters.
-     * @param lastName His last name, alphanumerical string of maximum 100 characters.
-     * @param ScientistName His scientist name, alphanumerical string of maximum 50 characters.
-     * @param firstName His first name, alphanumerical string of maximum 50 characters.
-     * @throws SQLException Throw a SLQException if an error occurs to the database.
-     */
-    public void registerUser(String id, String lastName, String ScientistName, String firstName) throws SQLException {
-        try (Connection conn = dbConnection.connect()) {
-            PreparedStatement stmt = conn.prepareStatement(
-                    "REPLACE INTO Utilisateur (idUtilisateur, nomUtilisateur, nomChercheur, prenomChercheur) VALUES (?,?,?,?)");
+    public void registerUser(String id, String lastName, String scientistName, String firstName) throws SQLException {
+
+        String sql = "REPLACE INTO Utilisateur "
+                + "(idUtilisateur, nomUtilisateur, nomChercheur, prenomChercheur) "
+                + "VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, id);
             stmt.setString(2, lastName);
-            stmt.setString(3, ScientistName);
+            stmt.setString(3, scientistName);
             stmt.setString(4, firstName);
-            System.out.println("LOG : " + stmt);
+
             stmt.executeUpdate();
         }
     }
 
-    /**
-     * Delete a user from the database.
-     * @param id The id of the user, alphanumerical string, unique and of maximum 100 characters
-     * @throws SQLException Throw a SLQException if an error occurs to the database.
-     */
     public void deleteUser(String id) throws SQLException {
-        try (Connection conn = dbConnection.connect()) {
-            PreparedStatement stmt = conn.prepareStatement("DELETE FROM Utilisateur WHERE idUtilisateur = ?");
+        String sql = "DELETE FROM Utilisateur WHERE idUtilisateur = ?";
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, id);
-            System.out.println("LOG : " + stmt);
             stmt.executeUpdate();
         }
     }
 
-    /**
-     * Return a list of all the users.
-     * @return A list of pair.
-     * @throws SQLException Throw a SLQException if an error occurs to the database.
-     */
     public List<Map<String, Object>> getAllUsers() throws SQLException {
         List<Map<String, Object>> users = new ArrayList<>();
-        try (Connection conn = dbConnection.connect()) {
-            PreparedStatement stmt = conn.prepareStatement("SELECT idUtilisateur, nomUtilisateur FROM Utilisateur");
-            ResultSet rs = stmt.executeQuery();
+
+        String sql = "SELECT idUtilisateur, nomUtilisateur FROM Utilisateur";
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 Map<String, Object> row = new HashMap<>();
+
                 row.put("idUtilisateur", rs.getString("idUtilisateur"));
                 row.put("nomUtilisateur", rs.getString("nomUtilisateur"));
+
                 users.add(row);
             }
         }
+
         return users;
+    }
+
+    public int addSensor(NewSensor sensor, String userId) throws SQLException {
+        String sqlSensor = "INSERT INTO Capteur "
+                + "(devEUI, nomCapteur, longitude, latitude, idGroupe) "
+                + "VALUES (?, ?, ?, ?, ?)";
+
+        String sqlLink = "INSERT INTO `est_lie_a` (idCapteur, idUtilisateur) VALUES (?, ?)";
+
+        try (Connection conn = dbConnection.connect()) {
+            conn.setAutoCommit(false);
+
+            try {
+                int sensorId = -1;
+
+                try (PreparedStatement stmt =
+                        conn.prepareStatement(sqlSensor, PreparedStatement.RETURN_GENERATED_KEYS)) {
+
+                    stmt.setString(1, sensor.devEUI());
+                    stmt.setString(2, sensor.sensorName());
+
+                    if (sensor.longitude() != null) {
+                        stmt.setDouble(3, sensor.longitude());
+                    } else {
+                        stmt.setNull(3, java.sql.Types.DOUBLE);
+                    }
+
+                    if (sensor.latitude() != null) {
+                        stmt.setDouble(4, sensor.latitude());
+                    } else {
+                        stmt.setNull(4, java.sql.Types.DOUBLE);
+                    }
+
+                    if (sensor.groupId() != null) {
+                        stmt.setInt(5, sensor.groupId());
+                    } else {
+                        stmt.setNull(5, java.sql.Types.INTEGER);
+                    }
+
+                    stmt.executeUpdate();
+
+                    try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            sensorId = generatedKeys.getInt(1);
+                        }
+                    }
+                }
+
+                if (sensorId != -1 && userId != null) {
+                    try (PreparedStatement linkStmt = conn.prepareStatement(sqlLink)) {
+                        linkStmt.setInt(1, sensorId);
+                        linkStmt.setString(2, userId);
+                        linkStmt.executeUpdate();
+                    }
+                }
+
+                conn.commit();
+
+                return sensorId;
+
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        }
+    }
+
+    public void updateSensor(int idCapteur, String nomCapteur, Double longitude, Double latitude) throws SQLException {
+
+        String sql = "UPDATE Capteur " + "SET nomCapteur = ?, longitude = ?, latitude = ? " + "WHERE idCapteur = ?";
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, nomCapteur);
+
+            if (longitude != null) {
+                stmt.setDouble(2, longitude);
+            } else {
+                stmt.setNull(2, java.sql.Types.DOUBLE);
+            }
+
+            if (latitude != null) {
+                stmt.setDouble(3, latitude);
+            } else {
+                stmt.setNull(3, java.sql.Types.DOUBLE);
+            }
+
+            stmt.setInt(4, idCapteur);
+
+            stmt.executeUpdate();
+        }
+    }
+
+    public int createGroup(String groupName) throws SQLException {
+        String sql = "INSERT INTO Groupe (nomGroupe) VALUES (?)";
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setString(1, groupName);
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public List<Map<String, Object>> getAllGroups() throws SQLException {
+        List<Map<String, Object>> groups = new ArrayList<>();
+
+        String sql = "SELECT idGroupe, nomGroupe FROM Groupe";
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> group = new HashMap<>();
+
+                group.put("id", rs.getInt("idGroupe"));
+                group.put("name", rs.getString("nomGroupe"));
+
+                groups.add(group);
+            }
+        }
+
+        return groups;
+    }
+
+    public List<Map<String, Object>> getSensorsForTable(String userId) throws SQLException {
+        List<Map<String, Object>> sensors = new ArrayList<>();
+
+        String query = "SELECT c.idCapteur, c.devEUI, c.nomCapteur, "
+                + "c.pourcentageBatterie, c.pourcentageStockage, "
+                + "c.longitude, c.latitude, g.nomGroupe AS searchName "
+                + "FROM Capteur c "
+                + "JOIN `est_lie_a` l ON c.idCapteur = l.idCapteur "
+                + "LEFT JOIN Groupe g ON c.idGroupe = g.idGroupe "
+                + "WHERE l.idUtilisateur = ?";
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> sensor = new HashMap<>();
+
+                    int battery = rs.getInt("pourcentageBatterie");
+                    int storage = rs.getInt("pourcentageStockage");
+
+                    sensor.put("id", rs.getInt("idCapteur"));
+                    sensor.put("devEUI", rs.getString("devEUI"));
+                    sensor.put("name", rs.getString("nomCapteur"));
+                    sensor.put("battery", battery);
+                    sensor.put("storage", storage);
+                    sensor.put("searchName", rs.getString("searchName"));
+
+                    Object lon = rs.getObject("longitude");
+                    Object lat = rs.getObject("latitude");
+
+                    sensor.put("longitude", lon != null ? lon : "");
+                    sensor.put("latitude", lat != null ? lat : "");
+                    sensor.put("lastSync", "Il y a 4 min");
+
+                    applyStatus(sensor, battery, storage);
+
+                    sensors.add(sensor);
+                }
+            }
+        }
+
+        return sensors;
+    }
+
+    private static void applyStatus(Map<String, Object> sensor, int battery, int storage) {
+        boolean lowBattery = battery < 20;
+        boolean lowStorage = storage < 15;
+
+        if (lowBattery || lowStorage) {
+            sensor.put(KEY_STATUS, "Critique");
+            sensor.put(KEY_ALERT, criticalAlert(lowBattery, lowStorage));
+
+        } else if (battery < 40 || storage < 30) {
+            sensor.put(KEY_STATUS, "Avertissement");
+            sensor.put(KEY_ALERT, "Niveau de ressource moyen");
+
+        } else {
+            sensor.put(KEY_STATUS, "Stable");
+            sensor.put(KEY_ALERT, "Aucune");
+        }
+    }
+
+    private static String criticalAlert(boolean lowBattery, boolean lowStorage) {
+        if (lowBattery && lowStorage) {
+            return "Batterie faible et stockage critique";
+        }
+
+        return lowBattery ? "Batterie faible (<20%)" : "Stockage presque saturé";
     }
 }
