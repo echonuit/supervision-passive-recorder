@@ -52,7 +52,7 @@ public class DbConnection {
      */
     public Connection connect() throws SQLException {
         readDotEnv();
-        String url = "jdbc:mariadb://" + DB_HOSTNAME + "/" + DB_NAME;
+        String url = "jdbc:mysql://" + DB_HOSTNAME + "/" + DB_NAME;
         return DriverManager.getConnection(url, DB_USER, DB_PASSWORD);
     }
 
@@ -67,7 +67,7 @@ public class DbConnection {
      * @throws SQLException Throw an exception if the connection failed.
      */
     public Connection connect(String dbHostname, String dbName, String dbUser, String dbPassword) throws SQLException {
-        String url = "jdbc:mariadb://" + dbHostname + "/" + dbName;
+        String url = "jdbc:mysql://" + dbHostname + "/" + dbName;
         return DriverManager.getConnection(url, dbUser, dbPassword);
     }
 }

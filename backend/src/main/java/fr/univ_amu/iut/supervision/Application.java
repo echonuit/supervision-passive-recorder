@@ -19,7 +19,7 @@ import io.javalin.Javalin;
  */
 public final class Application {
 
-    static void main() {
+    public static void main(String[] args) {
         Configuration config = Configuration.fromEnvironment();
 
         DataBase base = DataBase.connect(config);
