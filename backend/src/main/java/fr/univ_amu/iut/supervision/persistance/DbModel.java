@@ -10,15 +10,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Class used to run SQL query and manipulate the database.
+ */
 public class DbModel {
+
+    private final DbConnection dbConnection;
+
+    public DbModel() {
+        this.dbConnection = new DbConnection();
+    }
+
+    public DbModel(DbConnection dbConnection) {
+        this.dbConnection = dbConnection;
+    }
+
+    public DbConnection getDbConnection() {
+        return dbConnection;
+    }
 
     private static final String KEY_STATUS = "status";
     private static final String KEY_ALERT = "alert";
 
     public boolean userExist(String id) throws SQLException {
-        try (Connection conn = DbConnection.connect();
-                PreparedStatement stmt =
-                        conn.prepareStatement("SELECT idUtilisateur FROM Utilisateur WHERE idUtilisateur = ?;")) {
+        try (Connection conn = dbConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement("SELECT idUtilisateur FROM Utilisateur WHERE idUtilisateur = ?;")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -27,9 +43,9 @@ public class DbModel {
     }
 
     public void registerUser(String id, String lastName, String scientistName, String firstName) throws SQLException {
-        try (Connection conn = DbConnection.connect();
-                PreparedStatement stmt = conn.prepareStatement(
-                        "REPLACE INTO Utilisateur (idUtilisateur, nomUtilisateur, nomChercheur, prenomChercheur) VALUES (?,?,?,?)")) {
+        try (Connection conn = dbConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "REPLACE INTO Utilisateur (idUtilisateur, nomUtilisateur, nomChercheur, prenomChercheur) VALUES (?,?,?,?)")) {
             stmt.setString(1, id);
             stmt.setString(2, lastName);
             stmt.setString(3, scientistName);
@@ -39,19 +55,18 @@ public class DbModel {
     }
 
     public void deleteUser(String id) throws SQLException {
-        try (Connection conn = DbConnection.connect();
-                PreparedStatement stmt = conn.prepareStatement("DELETE FROM Utilisateur WHERE idUtilisateur = ?")) {
+        try (Connection conn = dbConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement("DELETE FROM Utilisateur WHERE idUtilisateur = ?")) {
             stmt.setString(1, id);
             stmt.executeUpdate();
         }
     }
 
-    public List<Map<String, Object>> getAllUsers() throws SQLException {
-        List<Map<String, Object>> users = new ArrayList<>();
-        try (Connection conn = DbConnection.connect();
-                PreparedStatement stmt =
-                        conn.prepareStatement("SELECT idUtilisateur, nomUtilisateur FROM Utilisateur");
-                ResultSet rs = stmt.executeQuery()) {
+    public List> getAllUsers() throws SQLException {
+        List> users = new ArrayList<>();
+        try (Connection conn = dbConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement("SELECT idUtilisateur, nomUtilisateur FROM Utilisateur");
+             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> row = new HashMap<>();
                 row.put("idUtilisateur", rs.getString("idUtilisateur"));
@@ -63,16 +78,14 @@ public class DbModel {
     }
 
     public int addSensor(NewSensor sensor, String userId) throws SQLException {
-        String sqlSensor =
-                "INSERT INTO Capteur (devEUI, nomCapteur, longitude, latitude, idGroupe) VALUES (?, ?, ?, ?, ?)";
+        String sqlSensor = "INSERT INTO Capteur (devEUI, nomCapteur, longitude, latitude, idGroupe) VALUES (?, ?, ?, ?, ?)";
         String sqlLink = "INSERT INTO `est_lie_a` (idCapteur, idUtilisateur) VALUES (?, ?)";
 
-        try (Connection conn = DbConnection.connect()) {
+        try (Connection conn = dbConnection.connect()) {
             conn.setAutoCommit(false);
             try {
                 int sensorId = -1;
-                try (PreparedStatement stmt =
-                        conn.prepareStatement(sqlSensor, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                try (PreparedStatement stmt = conn.prepareStatement(sqlSensor, PreparedStatement.RETURN_GENERATED_KEYS)) {
                     stmt.setString(1, sensor.devEUI());
                     stmt.setString(2, sensor.sensorName());
                     if (sensor.longitude() != null) stmt.setDouble(3, sensor.longitude());
@@ -108,8 +121,8 @@ public class DbModel {
 
     public void updateSensor(int idCapteur, String nomCapteur, Double longitude, Double latitude) throws SQLException {
         String sql = "UPDATE Capteur SET nomCapteur = ?, longitude = ?, latitude = ? WHERE idCapteur = ?";
-        try (Connection conn = DbConnection.connect();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, nomCapteur);
 
             if (longitude != null) {
@@ -131,8 +144,8 @@ public class DbModel {
 
     public int createGroup(String groupName) throws SQLException {
         String sql = "INSERT INTO Groupe (nomGroupe) VALUES (?)";
-        try (Connection conn = DbConnection.connect();
-                PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = dbConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, groupName);
             stmt.executeUpdate();
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
@@ -144,12 +157,12 @@ public class DbModel {
         return -1;
     }
 
-    public List<Map<String, Object>> getAllGroups() throws SQLException {
-        List<Map<String, Object>> groups = new ArrayList<>();
+    public List> getAllGroups() throws SQLException {
+        List> groups = new ArrayList<>();
         String sql = "SELECT idGroupe, nomGroupe FROM Groupe";
-        try (Connection conn = DbConnection.connect();
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = dbConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> group = new HashMap<>();
                 group.put("id", rs.getInt("idGroupe"));
@@ -160,8 +173,8 @@ public class DbModel {
         return groups;
     }
 
-    public List<Map<String, Object>> getSensorsForTable(String userId) throws SQLException {
-        List<Map<String, Object>> sensors = new ArrayList<>();
+    public List> getSensorsForTable(String userId) throws SQLException {
+        List> sensors = new ArrayList<>();
 
         String query = "SELECT c.idCapteur, c.devEUI, c.nomCapteur, c.pourcentageBatterie, c.pourcentageStockage, "
                 + "c.longitude, c.latitude, g.nomGroupe as searchName "
@@ -170,8 +183,8 @@ public class DbModel {
                 + "LEFT JOIN Groupe g ON c.idGroupe = g.idGroupe "
                 + "WHERE l.idUtilisateur = ?";
 
-        try (Connection conn = DbConnection.connect();
-                PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = dbConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

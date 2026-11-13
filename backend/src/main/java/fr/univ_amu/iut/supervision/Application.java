@@ -14,7 +14,7 @@ import io.javalin.Javalin;
 
 public final class Application {
 
-    static void main() {
+    public static void main(String[] args) {
         Configuration config = Configuration.fromEnvironment();
 
         DataBase base = DataBase.connect(config);
@@ -24,14 +24,13 @@ public final class Application {
         TramesSource source = createSource(config);
         source.start(archive::archiver);
 
-        // TODO change
         Superviseur superviseur = new Superviseur(base);
         superviseur.start();
 
         SensorService sensorService = new SensorService(dbModel);
         TableService tableService = new TableService(dbModel);
 
-        Javalin app = ServeurWeb.creer(base, dbModel, sensorService, tableService);
+        Javalin app = ServeurWeb.creer(dbModel);
         app.start(config.port());
     }
 

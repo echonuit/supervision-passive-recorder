@@ -1,4 +1,4 @@
-@param int nbBoitiers
+<%--@param int nbBoitiers--%>
 <!-- if development -->
 <%--<script type="module">--%>
 <%--    import RefreshRuntime from 'http://localhost:5173/@react-refresh'--%>

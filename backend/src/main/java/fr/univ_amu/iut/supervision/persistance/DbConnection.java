@@ -13,7 +13,8 @@ import java.util.Map;
  * Class used to connect to the database, use a .env file.
  */
 public class DbConnection {
-    // We default to system env variable
+    private static final String ENVPATH = ".env";
+    
     private static String DB_HOSTNAME = System.getenv("DB_HOSTNAME");
     private static String DB_NAME = System.getenv("DB_NAME");
     private static String DB_USER = System.getenv("DB_USER");
@@ -26,10 +27,8 @@ public class DbConnection {
      * of the parameter, and write them in their respective class attributes.
      */
     public static void readDotEnv() {
-        String envPath = ".env";
         try {
-            // Read all the line of the .env file
-            for (String lines : Files.readAllLines(Path.of(envPath))) {
+            for (String lines : Files.readAllLines(Path.of(ENVPATH))) {
                 int equals = lines.indexOf("=");
                 if (equals != -1) {
                     String key = lines.substring(0, equals).trim();
@@ -48,8 +47,8 @@ public class DbConnection {
     }
 
     /**
-     * Connect to the database.
-     * @return A Java.sql.Connection object, represent the connection to the database
+     * Connect to the database. Use the method readDotEnv() to get authentication arguments.
+     * @return A Java.sql.Connection object, represent the connection to the database.
      * @throws SQLException Throw an exception if the connection failed.
      */
     public static Connection connect() throws SQLException {
@@ -59,12 +58,25 @@ public class DbConnection {
             throw new SQLException("Pilote JDBC MariaDB introuvable", e);
         }
 
-        // S'assure que le .env a bien été lu si les variables sont nulles
         if (DB_HOSTNAME == null) {
             readDotEnv();
         }
 
         String url = "jdbc:mariadb://" + DB_HOSTNAME + "/" + DB_NAME;
         return DriverManager.getConnection(url, DB_USER, DB_PASSWORD);
+    }
+
+    /**
+     * Connect to the database with custom parameters.
+     * @param dbHostname The name of the host.
+     * @param dbName The name of the database.
+     * @param dbUser The name of the user.
+     * @param dbPassword The password of the user.
+     * @return A Java.sql.Connection object, represent the connection to the database.
+     * @throws SQLException Throw an exception if the connection failed.
+     */
+    public Connection connect(String dbHostname, String dbName, String dbUser, String dbPassword) throws SQLException {
+        String url = "jdbc:mariadb://" + dbHostname + "/" + dbName;
+        return DriverManager.getConnection(url, dbUser, dbPassword);
     }
 }
