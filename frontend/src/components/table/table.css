@@ -1,0 +1,140 @@
+.table-view-container {
+  padding: 24px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: sans-serif;
+}
+
+.table-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.table-view-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.last-update {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.table-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  margin-bottom: 28px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table-card-header {
+  background-color: #f1f5f9;
+  padding: 12px 16px;
+  border-bottom: 1px solid #cbd5e1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-card-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.critical-card {
+  border: 2px solid #ef4444;
+  background-color: #fef2f2;
+}
+
+.critical-header {
+  background-color: #dc2626;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.badge-count {
+  background: #ffffff;
+  color: #dc2626;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.sensor-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.sensor-table th {
+  background-color: #94a3b8;
+  color: #ffffff;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 10px 16px;
+}
+
+.sensor-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+}
+
+.sensor-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.battery-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.battery-bar {
+  width: 36px;
+  height: 14px;
+  border: 1px solid #94a3b8;
+  border-radius: 3px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.battery-fill.ok {
+  height: 100%;
+  background-color: #10b981;
+}
+
+.battery-fill.low {
+  height: 100%;
+  background-color: #ef4444;
+}
+
+.status-stable { color: #10b981; font-weight: 600; }
+.status-warning { color: #f59e0b; font-weight: 600; }
+.status-critical { color: #ef4444; font-weight: 600; }
+
+.text-alert { color: #dc2626; font-weight: 500; }
+.text-muted { color: #64748b; }
+.text-right { text-align: right; }
+.font-bold { font-weight: 600; }
+
+.btn-detail {
+  padding: 4px 10px;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+  background: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-detail:hover {
+  background: #f1f5f9;
+}
