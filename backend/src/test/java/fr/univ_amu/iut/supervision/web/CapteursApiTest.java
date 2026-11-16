@@ -40,7 +40,7 @@ class CapteursApiTest {
 
     @Test
     void sansCatalogueLaRouteRendUneListeVide() {
-        Javalin app = ServeurWeb.creer(null);
+        Javalin app = ServeurWeb.creer(null, List::of);
 
         JavalinTest.test(app, (serveur, client) -> {
             var reponse = client.get("/api/capteurs");

@@ -30,7 +30,7 @@ public class ServeurWebTest {
     @BeforeEach
     public void setup() {
         dbModel = mock(DbModel.class);
-        app = ServeurWeb.creer(dbModel);
+        app = ServeurWeb.creer(dbModel, List::of);
     }
 
     private void login(HttpClient client) {

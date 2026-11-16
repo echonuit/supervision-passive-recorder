@@ -53,7 +53,7 @@ public class DbConnection {
             }
             updateConfigFromValues();
         } catch (IOException e) {
-            System.err.println(".env not found, falling back to system environment");
+            System.err.println(".env illisible dans " + Path.of(ENVPATH).toAbsolutePath() + " : " + e);
         }
     }
 
