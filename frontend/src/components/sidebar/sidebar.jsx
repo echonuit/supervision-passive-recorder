@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./sidebar.css";
-import photoProfil from "../asset/pp_placeholder.jpg";
+import photoProfil from "../../asset/pp_placeholder.jpg";
 
 function Sidebar({ pageActive, onAjouterBoite }) {
   const [menuOuvert, setMenuOuvert] = useState(false);

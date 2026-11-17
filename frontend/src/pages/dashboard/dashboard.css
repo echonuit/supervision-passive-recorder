@@ -3,8 +3,6 @@
   min-height: 100vh;
 }
 
-/* Contenu principal */
-
 .contenu-principal {
   flex: 1;
   padding: 24px 32px;
@@ -41,15 +39,6 @@
   border-radius: 6px;
 }
 
-.date-mise-a-jour {
-  margin-left: auto;
-  font-family: monospace;
-  font-size: 12px;
-  color: #666;
-}
-
-/* Tableaux */
-
 table {
   width: 100%;
   border-collapse: collapse;
@@ -61,6 +50,14 @@ table {
 
 thead tr {
   background-color: #e2e2e6;
+}
+
+table.table-urgent thead tr {
+  background-color: #ff1a1a !important;
+}
+
+table.table-urgent th {
+  color: #ffffff !important;
 }
 
 th {
@@ -77,7 +74,7 @@ td {
   font-size: 14px;
 }
 
-td button {
+td button.btn-detail {
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -86,7 +83,9 @@ td button {
   cursor: pointer;
 }
 
-/* Jauge de batterie */
+td button.btn-detail:hover {
+  background-color: #f5f5f5;
+}
 
 .jauge-batterie {
   display: inline-block;
@@ -115,8 +114,6 @@ td button {
   background-color: #d6335c;
 }
 
-/* État système */
-
 .etat-stable {
   color: #2ea043;
   font-weight: bold;
@@ -132,14 +129,10 @@ td button {
   font-weight: bold;
 }
 
-/* Alertes */
-
 .alerte {
   color: #e0a300;
   font-weight: bold;
 }
-
-/* Modale d'ajout de capteur */
 
 .fond-modal {
   position: fixed;
@@ -148,50 +141,86 @@ td button {
   align-items: center;
   justify-content: center;
   background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+.conteneur-modal {
+  position: relative;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bouton-croix {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+}
+
+.bouton-croix:hover {
+  color: #000;
 }
 
 .modal-ajout-capteur {
   display: flex;
   flex-direction: column;
-  width: 320px;
-  padding: 24px;
-  border-radius: 12px;
-  background-color: #fff;
 }
 
 .modal-ajout-capteur h2 {
-  margin: 0 0 16px;
+  margin: 0 0 14px;
   font-size: 16px;
 }
 
 .modal-ajout-capteur label {
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: 4px;
+  font-size: 11px;
   font-weight: bold;
   color: #555;
 }
 
 .modal-ajout-capteur input,
 .modal-ajout-capteur select {
-  margin-bottom: 14px;
-  padding: 8px 10px;
+  margin-bottom: 10px;
+  padding: 6px 10px;
   border: 1px solid #d0d0d5;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
+}
+
+.bloc-localisation {
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.bloc-localisation ul {
+  margin: 4px 0 0 16px;
+  padding: 0;
 }
 
 .boutons-modal {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .boutons-modal button {
-  padding: 8px 16px;
+  padding: 6px 14px;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
 

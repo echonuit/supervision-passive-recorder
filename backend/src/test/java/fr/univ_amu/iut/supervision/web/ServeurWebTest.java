@@ -33,10 +33,6 @@ public class ServeurWebTest {
         app = ServeurWeb.creer(dbModel);
     }
 
-    /**
-     * Simulate the React+Vite front-end server sending the profil, write them in the session
-     * @param client The http client used to write the information in his session variable
-     */
     private void login(HttpClient client) {
         assertEquals(201, client.post("/api/sentProfil", profil).code());
     }
@@ -48,13 +44,9 @@ public class ServeurWebTest {
         });
     }
 
-    //	++++++++++ /api/users ++++++++++
     @Test
     public void testApiUsersCorrectly() throws SQLException {
-        //		["{nomUtilisateur=jamal, idUtilisateur=0}, {nomUtilisateur=normaline, idUtilisateur=1},
-        // {nomUtilisateur=daltoline, idUtilisateur=2}, {nomUtilisateur=sourdaline, idUtilisateur=3},
-        // {nomUtilisateur=aveuglaline, idUtilisateur=4}"]
-        when(dbModel.getAllUsers()).thenReturn(List.of(Map.of("0", "Jamal")));
+        when(dbModel.getAllUsers()).thenReturn(List.of(Map.of("idUtilisateur", "0", "nomUtilisateur", "Jamal")));
         JavalinTest.test(app, (server, client) -> {
             assertThat(client.get("/api/users").body().string()).contains("Jamal");
         });
@@ -67,7 +59,6 @@ public class ServeurWebTest {
         });
     }
 
-    //	++++++++++ /api/sentProfil ++++++++++
     @Test
     public void testApiSentProfilWhenUserIsNotInDatabase() throws SQLException {
         when(dbModel.userExist(profil.get(PROFIL_ID_KEY))).thenReturn(false);
@@ -84,17 +75,16 @@ public class ServeurWebTest {
         });
     }
 
-    //	++++++++++ /api/getSessionAttributes ++++++++++
     @Test
     public void testApiGetSessionAttributesCorrectly() {
         JavalinTest.test(app, (server, client) -> {
             login(client);
             var res = client.get("/api/getSessionAttributes");
-            System.out.println(res.body().string());
             assertEquals(200, res.code());
-            assertThat(res.body().string().contains("\" " + PROFIL_ID_KEY + " \"=\"1\""));
-            assertThat(res.body().string().contains("\" " + PROFIL_PSEUDO_KEY + " \"=\"PSEUDO01\""));
-            assertThat(res.body().string().contains("\" " + PROFIL_EMAIL_KEY + " \"=\"EMAIL01\""));
+            String body = res.body().string();
+            assertThat(body).contains(PROFIL_ID_KEY);
+            assertThat(body).contains("1");
+            assertThat(body).contains("EMAIL01");
         });
     }
 
@@ -106,7 +96,6 @@ public class ServeurWebTest {
         });
     }
 
-    //	++++++++++ /api/disconnect ++++++++++
     @Test
     public void testApiDisconnectCorrectly() {
         JavalinTest.test(app, (server, client) -> {
@@ -116,7 +105,7 @@ public class ServeurWebTest {
             assertTrue(res.body().string().isEmpty());
         });
     }
-    //	++++++++++ /api/delete/user ++++++++++
+
     @Test
     public void testApiDeleteUserCorrectly() throws SQLException {
         when(dbModel.userExist(profil.get(PROFIL_ID_KEY))).thenReturn(false);
@@ -127,20 +116,16 @@ public class ServeurWebTest {
             assertEquals("", client.get("/api/getSessionAttributes").body().string());
         });
     }
-    // ++++++++++ /api/checkUser ++++++++++
+
     @Test
     public void testApiCheckUserCorrectly() throws SQLException {
         JavalinTest.test(app, (server, client) -> {
             login(client);
-            // since /api/checkUser will only for the moment print the output we only need to check if the SQL query has
-            // been executed
             assertEquals(200, client.get("/api/checkUser").code());
-            // Two 2 time userExis() is called when /api/sentProfil and /api/checkUser
             verify(dbModel, times(2)).userExist(profil.get(PROFIL_ID_KEY));
         });
     }
 
-    // ++++++++++ createSessionHandler() ++++++++++
     @Test
     public void testCreateSessionHandlerCorrectly() throws SQLException {
         SessionHandler sessionHandler = ServeurWeb.createSessionHandler();
