@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "../../components/sidebar/sidebar";
 import "./dashboard.css";
 import CarteCapteurs from "../../components/carte/carte";
+import SelecteurPosition from "../../components/carte/selecteurPosition";
 import { useCapteurs } from "../../hooks/useCapteurs";
 
 
@@ -260,7 +261,7 @@ function Dashboard({ onLogout }) {
 
                 <h2>Carte des capteurs</h2>
                 <div className="panneau-carte">
-                    <CarteCapteurs {...donneesCarte} />
+                    <CarteCapteurs {...donneesCarte} zoomMolette />
                 </div>
             </main>
 
@@ -299,24 +300,14 @@ function Dashboard({ onLogout }) {
                                 placeholder="Ex: Station météo 1"
                             />
 
-                            <label htmlFor="longitude">Longitude</label>
-                            <input
-                                id="longitude"
-                                type="number"
-                                step="any"
-                                value={longitude}
-                                onChange={(evenement) => setLongitude(evenement.target.value)}
-                                placeholder="Ex: 3.14"
-                            />
-
-                            <label htmlFor="latitude">Latitude</label>
-                            <input
-                                id="latitude"
-                                type="number"
-                                step="any"
-                                value={latitude}
-                                onChange={(evenement) => setLatitude(evenement.target.value)}
-                                placeholder="Ex: 1.23"
+                            <label>Position</label>
+                            <SelecteurPosition
+                                latitude={latitude}
+                                longitude={longitude}
+                                onChange={(lat, lon) => {
+                                    setLatitude(lat);
+                                    setLongitude(lon);
+                                }}
                             />
 
                             <label htmlFor="recherche">Recherche / Groupe</label>
