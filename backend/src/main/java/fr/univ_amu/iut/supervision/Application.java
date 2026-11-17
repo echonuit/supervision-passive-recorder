@@ -1,5 +1,7 @@
 package fr.univ_amu.iut.supervision;
 
+import fr.univ_amu.iut.supervision.capteurs.CatalogueBdd;
+import fr.univ_amu.iut.supervision.capteurs.CatalogueCapteurs;
 import fr.univ_amu.iut.supervision.ingestion.SourceLiveObjects;
 import fr.univ_amu.iut.supervision.ingestion.SourceMqtt;
 import fr.univ_amu.iut.supervision.ingestion.TramesSource;
@@ -30,7 +32,8 @@ public final class Application {
         SensorService sensorService = new SensorService(dbModel);
         TableService tableService = new TableService(dbModel);
 
-        Javalin app = ServeurWeb.creer(dbModel);
+        CatalogueCapteurs catalogue = new CatalogueBdd(dbModel.getDbConnection());
+        Javalin app = ServeurWeb.creer(dbModel, catalogue);
         app.start(config.port());
     }
 
