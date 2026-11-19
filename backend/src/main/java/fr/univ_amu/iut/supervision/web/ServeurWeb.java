@@ -140,8 +140,13 @@ public final class ServeurWeb {
             });
 
             config.routes.get("/api/capteurs", ctx -> {
+                String userId = ctx.sessionAttribute(SESSION_USER_ID_KEY);
+                if (userId == null) {
+                    ctx.status(401).json(Map.of(ERROR_KEY, MSG_NON_AUTHENTIFIE));
+                    return;
+                }
                 try {
-                    ctx.json(catalogue.lister());
+                    ctx.json(catalogue.lister(userId));
                 } catch (Exception e) {
                     ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
                 }

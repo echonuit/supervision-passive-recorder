@@ -32,6 +32,24 @@ public final class CatalogueBdd implements CatalogueCapteurs {
                 LIMIT 1)
             """;
 
+    private static final String SQL_PAR_UTILISATEUR = """
+            SELECT c.devEUI, c.nomCapteur,
+                   COALESCE(h.latitude,  c.latitude)  AS latitude,
+                   COALESCE(h.longitude, c.longitude) AS longitude,
+                   c.pourcentageBatterie, c.pourcentageStockage
+            FROM Capteur c
+            JOIN `est_lie_a` l ON c.idCapteur = l.idCapteur
+            LEFT JOIN Historique h ON h.idHistorique = (
+                SELECT h2.idHistorique
+                FROM Historique h2
+                WHERE h2.idCapteur = c.idCapteur
+                  AND h2.latitude IS NOT NULL
+                  AND h2.longitude IS NOT NULL
+                ORDER BY h2.dateHeure DESC, h2.idHistorique DESC
+                LIMIT 1)
+            WHERE l.idUtilisateur = ?
+            """;
+
     private final DbConnection dbConnection;
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueBdd.class);
 
@@ -51,6 +69,31 @@ public final class CatalogueBdd implements CatalogueCapteurs {
                 CapteurPosition capteur = lireLigne(rs);
                 if (capteur != null) {
                     capteurs.add(capteur);
+                }
+            }
+        } catch (SQLException e) {
+            LOG.error("Lecture des capteurs impossible", e);
+            throw new IllegalStateException("Lecture des capteurs impossible : " + e.getMessage(), e);
+        }
+
+        return capteurs;
+    }
+
+    @Override
+    public List<CapteurPosition> lister(String userId) {
+        List<CapteurPosition> capteurs = new ArrayList<>();
+
+        try (Connection conn = dbConnection.connect();
+                PreparedStatement stmt = conn.prepareStatement(SQL_PAR_UTILISATEUR)) {
+
+            stmt.setString(1, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    CapteurPosition capteur = lireLigne(rs);
+                    if (capteur != null) {
+                        capteurs.add(capteur);
+                    }
                 }
             }
         } catch (SQLException e) {

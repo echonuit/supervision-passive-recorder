@@ -13,4 +13,8 @@ import java.util.List;
 public interface CatalogueCapteurs {
 
     List<CapteurPosition> lister();
+
+    default List<CapteurPosition> lister(String userId) {
+        return lister();
+    }
 }
