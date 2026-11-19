@@ -1,5 +1,6 @@
 package fr.univ_amu.iut.supervision.web;
 
+import fr.univ_amu.iut.supervision.capteurs.CatalogueCapteurs;
 import fr.univ_amu.iut.supervision.persistance.DbModel;
 import fr.univ_amu.iut.supervision.web.sensor.NewSensor;
 import gg.jte.ContentType;
@@ -44,7 +45,7 @@ public final class ServeurWeb {
         return sessionHandler;
     }
 
-    public static Javalin creer(DbModel dbModel) {
+    public static Javalin creer(DbModel dbModel, CatalogueCapteurs catalogue) {
         TemplateEngine moteur =
                 TemplateEngine.create(new DirectoryCodeResolver(dossierDesGabarits()), ContentType.Html);
 
@@ -133,6 +134,14 @@ public final class ServeurWeb {
                 }
                 try {
                     ctx.json(dbModel.getSensorsForTable(userId));
+                } catch (Exception e) {
+                    ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
+                }
+            });
+
+            config.routes.get("/api/capteurs", ctx -> {
+                try {
+                    ctx.json(catalogue.lister());
                 } catch (Exception e) {
                     ctx.status(500).json(Map.of(ERROR_KEY, e.getMessage()));
                 }

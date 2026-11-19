@@ -1,0 +1,45 @@
+.selecteur-position {
+    margin-bottom: 10px;
+}
+
+.selecteur-position__carte {
+    height: 220px;
+    border: 1px solid #d0d0d5;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: crosshair;
+    isolation: isolate;
+}
+
+.selecteur-position__point {
+    box-sizing: border-box;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background-color: #4a5bd4;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
+    cursor: grab;
+}
+
+.selecteur-position__pied {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #555;
+}
+
+.selecteur-position__pied button {
+    padding: 3px 8px;
+    border: 1px solid #d0d0d5;
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.selecteur-position__pied button:hover {
+    background-color: #eee;
+}

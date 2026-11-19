@@ -41,7 +41,7 @@ public class DbConnection {
             DB_USER = values.get("DB_USER");
             DB_PASSWORD = values.get("DB_PASSWORD");
         } catch (IOException e) {
-            System.err.println(".env not found, falling back to system environment");
+            System.err.println(".env illisible dans " + Path.of(ENVPATH).toAbsolutePath() + " : " + e);
         }
     }
 
